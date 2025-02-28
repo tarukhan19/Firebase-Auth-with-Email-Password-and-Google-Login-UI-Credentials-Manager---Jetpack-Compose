@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.demo.userauth"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.demo.userauth"
