@@ -115,7 +115,6 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
         viewModelScope.launch(coroutineExceptionHandler) {
 
             getState { it.copy(isLoading = true) }
-            delay(1000)
             if (validateInput()) {
                 userAuthRepo.userRegister(
                     UserEntity(
