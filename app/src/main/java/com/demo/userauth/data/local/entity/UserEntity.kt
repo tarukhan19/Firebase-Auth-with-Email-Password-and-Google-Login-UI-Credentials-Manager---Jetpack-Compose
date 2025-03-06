@@ -2,13 +2,14 @@ package com.demo.userauth.data.local.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-//  indices = [Index(value = ["emailId"], unique = true) , Index(value = ["phoneNumber"], unique = true) ])
-@Entity(tableName = "user")
+@Entity(tableName = "user", indices = [Index(value = ["emailId"], unique = true), Index(value = ["phoneNumber"], unique = true)] )
 data class UserEntity(
     @ColumnInfo(name = "id")
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
 
     @ColumnInfo(name = "emailId")
     val emailId: String = "",
