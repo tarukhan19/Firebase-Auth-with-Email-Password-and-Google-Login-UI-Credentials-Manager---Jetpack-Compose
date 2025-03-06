@@ -23,7 +23,7 @@ import com.demo.userauth.presentation.theme.primaryColor
 
 @Composable
 fun CustomButton(
-    isButtonEnabled: Boolean = false,
+    isButtonEnabled: Boolean = true,
     containerColor: Color = primaryColor,
     contentColor: Color = Color.White,
     shape: Shape = RoundedCornerShape(percent = 20),
