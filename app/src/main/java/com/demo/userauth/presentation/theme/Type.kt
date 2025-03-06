@@ -1,4 +1,4 @@
-package com.demo.userauth.ui.theme
+package com.demo.userauth.presentation.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

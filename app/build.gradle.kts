@@ -2,6 +2,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.hilt)
+    id("kotlin-kapt") // Required for Hilt compiler
+    id("com.google.devtools.ksp") // required for KSP
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -10,8 +14,8 @@ android {
 
     defaultConfig {
         applicationId = "com.demo.userauth"
-        minSdk = 21
-        targetSdk = 34
+        minSdk = 24
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -28,11 +32,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -49,8 +53,22 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    // extended icons like password visible/invisible
+    implementation(libs.material.icon)
+    // splash screen
     implementation(libs.androidx.splash)
-
+    // hilt
+    implementation(libs.hilt)
+    ksp (libs.hilt.compiler)
+    implementation(libs.hilt.navigation) // Ensure this is included
+    // navigation
+    implementation(libs.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
+    // Room Database
+    implementation(libs.androidx.rooms.runtime)
+    ksp (libs.androidx.rooms.compiler)
+    implementation(libs.androidx.rooms.ktx)
+    // testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
