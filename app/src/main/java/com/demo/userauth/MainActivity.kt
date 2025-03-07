@@ -4,44 +4,55 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.demo.userauth.ui.theme.UserAuthTheme
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.demo.userauth.presentation.navigation.ScreenRoute.Login
+import com.demo.userauth.presentation.navigation.ScreenRoute.Signup
+import com.demo.userauth.presentation.theme.UserAuthTheme
+import com.demo.userauth.presentation.login.LoginScreen
+import com.demo.userauth.presentation.navigation.ScreenRoute
+import com.demo.userauth.presentation.signup.SignupScreen
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             UserAuthTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                AppNavigation()
             }
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+fun AppNavigation(navHostController: NavHostController = rememberNavController()) {
+    NavHost(
+        navController = navHostController,
+        startDestination = Login
+    ) {
+        composable<Login> {
+            LoginScreen(
+                onSignUpNavigate = { navHostController.navigateToSingleTop(Signup) }
+            )
+        }
+        composable<Signup> {
+            SignupScreen(
+                onLogInNavigate = { navHostController.navigateToSingleTop(Login) }
+            )
+        }
+    }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    UserAuthTheme {
-        Greeting("Android")
+fun NavController.navigateToSingleTop(screenRoute: ScreenRoute) {
+    this.navigate(screenRoute) {
+        popUpTo(Login) { inclusive = false }  // Clears all backstack up to start
+        launchSingleTop = true
     }
 }

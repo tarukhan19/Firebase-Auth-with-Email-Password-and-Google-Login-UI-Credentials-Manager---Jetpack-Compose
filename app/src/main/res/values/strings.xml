@@ -1,3 +1,22 @@
 <resources>
     <string name="app_name">UserAuth</string>
+    <string name="email_id">Email ID</string>
+    <string name="email_id_placeholder">Enter your Email ID</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="phone_number_placeholder">Enter your Phone Number</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="password_placeholder">Enter your Password</string>
+    <string name="conf_password_placeholder">Confirm your Password</string>
+    <string name="show_password">Show Password</string>
+    <string name="hide_password">Hide Password</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">SignUp</string>
+    <string name="dont_have_acc">Don\'t have an account?</string>
+    <string name="already_have_acc">Already have an account?</string>
+    <string name="full_name">Full Name</string>
+    <string name="full_name_placeholder">Enter you Full Name</string>
+
+    <string name="app_icon">App Icon</string>
+
 </resources>
