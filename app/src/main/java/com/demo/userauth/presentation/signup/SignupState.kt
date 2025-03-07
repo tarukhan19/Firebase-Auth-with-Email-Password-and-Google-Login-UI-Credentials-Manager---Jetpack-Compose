@@ -3,7 +3,6 @@ package com.demo.userauth.presentation.signup
 import com.demo.userauth.utils.Resource
 
 data class SignupState (
-
     val fullName : String = "",
     val emailId : String = "",
     val password : String = "",

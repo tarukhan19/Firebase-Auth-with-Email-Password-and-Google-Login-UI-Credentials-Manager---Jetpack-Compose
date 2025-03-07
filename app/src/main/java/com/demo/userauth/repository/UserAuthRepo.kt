@@ -10,7 +10,22 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
+/*
+*This function userRegister(userEntity: UserEntity) is a Cold Flow that performs user registration
+ and emits different states of the process.
+
+* Returns a Flow of Resource<String>, meaning it emits different states of the signup process
+ (Loading, Success, or Error).
+
+* Flow is cold, meaning it executes only when collected.
+
+* Moves execution to the IO thread for better performance.Prevents blocking the main thread (Asynchronous Execution),
+ ensuring a smooth UI experience.
+
+* */
+
 class UserAuthRepo @Inject constructor(private var userDao: UserDao) {
+    // Registration
     fun userRegister(userEntity: UserEntity): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
         val existingUser =
@@ -25,5 +40,22 @@ class UserAuthRepo @Inject constructor(private var userDao: UserDao) {
         }
     }.catch { e ->
         emit(Resource.Error("Signup failed: ${e.localizedMessage}"))
+    }.flowOn(Dispatchers.IO)
+
+    // Login
+    fun userLogin(emailId: String, password: String): Flow<Resource<String>> = flow {
+
+        emit(Resource.Loading())
+
+        val user = userDao.loginUser(emailId = emailId, password = password)
+        when {
+            user?.emailId == null -> emit(Resource.Error("User not found"))
+            user.password != password -> emit(Resource.Error("Password is incorrect"))
+            else -> {
+                emit(Resource.Success("Login successful"))
+            }
+        }
+    }.catch { e ->
+        emit(Resource.Error("Login Failed: ${e.localizedMessage}"))
     }.flowOn(Dispatchers.IO)
 }

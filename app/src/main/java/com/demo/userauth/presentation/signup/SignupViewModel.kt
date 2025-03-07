@@ -27,11 +27,35 @@ import kotlinx.coroutines.launch
 /*
 * in MVI, state changes should be immutable so handled via StateFlow, not MutableState.
 
-* reduce is a higher-order function, meaning it takes another function (update: (SignupState) -> SignupState)
+* getState is a higher-order function, meaning it takes another function (update: (SignupState) -> SignupState)
  as a parameter.The update function takes a SignupState as input and returns a modified SignupState
 
 * validateName(), validateMobileNumber(), validateEmailId(), and validatePassword() return true for valid input,
  and validateInput() expects  to return true for valid input.
+
+* MutableStateFlow is a hot flow that holds a state and emits updates.
+It starts with an initial value, SignupState(), which means it already has a value before any collector subscribes.
+* asStateFlow() converts MutableStateFlow into an immutable StateFlow. This ensures that only ViewModel can
+modify _signUpState, and the UI (or other classes) can only read from signUpState
+
+* updateFullName and other methods , modifies _signUpState, and since StateFlow is hot, the UI immediately gets updated.
+
+* userRegister returns a cold Flow that emits:
+Resource.Loading() (indicating loading state)
+Resource.Success("Registration successful") (on success)
+Resource.Error("Signup failed") (on failure)
+* collect is a terminal operator that starts collecting the flow.
+Every time userRegister emits a new value, collect receives it as result.
+
+
+* UI State (signUpState) is a continuously active state, always holding the latest form data and UI updates.
+We use StateFlow (Hot Flow) to ensure that the UI always has the latest values, even after recompositions or re-subscriptions.
+
+* The Signup API (userRegister()) is an on-demand operation that should only execute when explicitly triggered.
+ Using Flow (Cold Flow) prevents unnecessary API calls and ensures efficient resource management.
+
+* The @Inject annotation is used for constructor injection. This means that Dagger or Hilt
+will automatically provide an instance of UserAuthRepo when creating SignupViewModel.
 * */
 
 @HiltViewModel
