@@ -16,6 +16,7 @@ composeNavigation = "2.8.8"
 serialization = "1.6.3"
 room-ver = "2.6.1"
 ksp = "2.0.21-1.0.27"
+datastore = "1.1.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -42,6 +43,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 androidx-rooms-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room-ver" }
 androidx-rooms-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room-ver" }
 androidx-rooms-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room-ver" }
+androidx-datastore = {group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
