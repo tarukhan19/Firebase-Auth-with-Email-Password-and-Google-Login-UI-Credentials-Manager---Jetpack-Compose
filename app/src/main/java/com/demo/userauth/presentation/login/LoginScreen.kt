@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +27,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.demo.userauth.R
+import com.demo.userauth.presentation.components.CircularProgressBar
 import com.demo.userauth.presentation.components.CustomButton
 import com.demo.userauth.presentation.components.CustomImage
 import com.demo.userauth.presentation.components.CustomTextFieldForm
@@ -34,13 +36,14 @@ import com.demo.userauth.presentation.components.ScaffoldUi
 import com.demo.userauth.presentation.theme.primaryColor
 import com.demo.userauth.presentation.login.LoginIntent.EnterEmail
 import com.demo.userauth.presentation.login.LoginIntent.EnterPassword
+import com.demo.userauth.presentation.login.LoginIntent.TogglePasswordVisibility
 
 @Composable
 fun LoginScreen(
     loginViewModel: LoginViewModel = hiltViewModel(),
     onSignUpNavigate: () -> Unit,
 ) {
-    val loginState = loginViewModel._loginState
+    val loginState = loginViewModel.loginState.collectAsState()
 
     ScaffoldUi(showToolBar = false) {
         Spacer(modifier = Modifier.padding(top = 20.dp))
@@ -59,14 +62,14 @@ fun LoginScreen(
         }
         Spacer(modifier = Modifier.padding(top = 40.dp))
         CustomTextFieldForm(
-            value = loginState.emailId,
+            value = loginState.value.emailId,
             onValueChange = { loginViewModel.handleIntent(EnterEmail(it)) },
             label = R.string.email_id,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(all = 5.dp),
             singleLine = true,
-            isError = loginState.emailIdError,
+            isError = loginState.value.emailIdError,
             keyboardType = KeyboardType.Email,
             placeholder = R.string.email_id_placeholder,
             leadingIcon = Icons.Filled.Email,
@@ -74,22 +77,22 @@ fun LoginScreen(
         )
 
         CustomTextFieldForm(
-            value = loginState.password,
+            value = loginState.value.password,
             onValueChange = { loginViewModel.handleIntent(EnterPassword(it)) },
             label = R.string.password,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(all = 5.dp),
             singleLine = true,
-            isError = loginState.passwordError,
+            isError = loginState.value.passwordError,
             keyboardType = KeyboardType.Password,
             placeholder = R.string.password_placeholder,
             leadingIcon = Icons.Filled.Lock,
-            trailingIcon = if (loginViewModel.showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+            trailingIcon = if (loginState.value.showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
             contentDescription = R.string.password_placeholder,
-            leadingContentDescription = if (loginViewModel.showPassword) R.string.show_password else R.string.hide_password,
-            onTrailingIconClicked = { loginViewModel.showPassword = !loginViewModel.showPassword },
-            visualTransformation = if (loginViewModel.showPassword) {
+            leadingContentDescription = if (loginState.value.showPassword) R.string.show_password else R.string.hide_password,
+            onTrailingIconClicked = { loginViewModel.handleIntent(TogglePasswordVisibility) },
+            visualTransformation = if (loginState.value.showPassword) {
                 VisualTransformation.None
             } else {
                 PasswordVisualTransformation()
@@ -97,7 +100,7 @@ fun LoginScreen(
         )
 
         CustomButton(
-            isButtonEnabled = !loginState.passwordError && !loginState.emailIdError && loginState.emailId.isNotEmpty() && loginState.password.isNotEmpty(),
+            isButtonEnabled = !loginState.value.passwordError && !loginState.value.emailIdError && loginState.value.emailId.isNotEmpty() && loginState.value.password.isNotEmpty(),
             onClick = { loginViewModel.handleIntent(LoginIntent.Submit) },
             icon = Icons.Filled.CheckCircleOutline,
             buttonContent = stringResource(R.string.sign_in)
@@ -123,4 +126,9 @@ fun LoginScreen(
             )
         }
     }
+
+    if (loginState.value.isLoading) {
+        CircularProgressBar()
+    }
 }
+

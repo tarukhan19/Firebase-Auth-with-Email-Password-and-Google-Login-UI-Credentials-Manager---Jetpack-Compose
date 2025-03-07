@@ -2,12 +2,9 @@ package com.demo.userauth.presentation.signup
 
 import android.util.Log
 import android.util.Patterns
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.demo.userauth.data.local.entity.UserEntity
 import com.demo.userauth.presentation.signup.SignupIntent.EnterConfirmPassword
@@ -16,9 +13,10 @@ import com.demo.userauth.presentation.signup.SignupIntent.EnterFullName
 import com.demo.userauth.presentation.signup.SignupIntent.EnterPassword
 import com.demo.userauth.presentation.signup.SignupIntent.EnterPhoneNumber
 import com.demo.userauth.presentation.signup.SignupIntent.Submit
+import com.demo.userauth.presentation.signup.SignupIntent.ToggleConfirmPasswordVisibility
+import com.demo.userauth.presentation.signup.SignupIntent.TogglePasswordVisibility
 import com.demo.userauth.repository.UserAuthRepo
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -56,6 +54,10 @@ We use StateFlow (Hot Flow) to ensure that the UI always has the latest values, 
 
 * The @Inject annotation is used for constructor injection. This means that Dagger or Hilt
 will automatically provide an instance of UserAuthRepo when creating SignupViewModel.
+
+* StateFlow in ViewModel: Ensures a single source of truth for UI state.
+✔️ collectAsState() in Compose: Converts StateFlow into State<T> to trigger recomposition.
+✔️ Why use asStateFlow()? Prevents modification of _loginState outside ViewModel
 * */
 
 @HiltViewModel
@@ -63,9 +65,6 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
 
     private val _signUpState = MutableStateFlow(SignupState())
     val signUpState: StateFlow<SignupState> = _signUpState.asStateFlow()
-
-    var showPassword: Boolean by mutableStateOf(false)
-    var showConfPassword: Boolean by mutableStateOf(false)
 
     val coroutineExceptionHandler: CoroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
@@ -129,9 +128,26 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
                 }
             }
 
+            is TogglePasswordVisibility -> {
+                getState {
+                    it.copy(
+                        showPassword = !it.showPassword
+                    )
+                }
+            }
+
+            is ToggleConfirmPasswordVisibility -> {
+                getState {
+                    it.copy(
+                        showConfirmPassword = !it.showConfirmPassword
+                    )
+                }
+            }
+
             is Submit -> {
                 registerUser()
             }
+
         }
     }
 

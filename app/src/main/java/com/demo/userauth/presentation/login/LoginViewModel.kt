@@ -1,35 +1,58 @@
 package com.demo.userauth.presentation.login
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import android.util.Patterns
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.demo.userauth.presentation.login.LoginIntent.EnterEmail
 import com.demo.userauth.presentation.login.LoginIntent.EnterPassword
 import com.demo.userauth.presentation.login.LoginIntent.Submit
+import com.demo.userauth.presentation.login.LoginIntent.TogglePasswordVisibility
+import com.demo.userauth.repository.UserAuthRepo
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(savedStateHandle: SavedStateHandle) : ViewModel() {
+class LoginViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo) : ViewModel() {
 
-    var _loginState by mutableStateOf(LoginState())
-        private set
-    var showPassword: Boolean by mutableStateOf(false)
+    private val _loginState = MutableStateFlow(LoginState())
+    val loginState: StateFlow<LoginState> = _loginState.asStateFlow()
+
+    val coroutineExceptionHandler: CoroutineExceptionHandler =
+        CoroutineExceptionHandler { _, throwable ->
+            Log.e("CoroutineError", "Exception caught: ${throwable.localizedMessage}")
+        }
 
     fun handleIntent(loginIntent: LoginIntent) {
         when (loginIntent) {
             is EnterEmail -> {
-                updateEmailId(loginIntent.email)
+                getState {
+                    it.copy(
+                        emailId = loginIntent.email,
+                        emailIdError = validateEmailId(loginIntent.email)
+                    )
+                }
             }
 
             is EnterPassword -> {
-                updatePassword(loginIntent.password)
+                getState {
+                    it.copy(
+                        password = loginIntent.password,
+                        passwordError = validatePassword(loginIntent.password)
+                    )
+                }
+            }
+
+            is TogglePasswordVisibility -> {
+                getState {
+                    it.copy(showPassword = !it.showPassword)
+                }
             }
 
             is Submit -> {
@@ -38,39 +61,56 @@ class LoginViewModel @Inject constructor(savedStateHandle: SavedStateHandle) : V
         }
     }
 
-    private fun updateEmailId(emailId: String) {
-        validateEmailId(emailId).let { isValid ->
-            _loginState = _loginState.copy(emailId = emailId, emailIdError = isValid)
-        }
+    private fun getState(update: (LoginState) -> LoginState) {
+        _loginState.value = update(LoginState())
     }
 
-    private fun updatePassword(password: String) {
-        validatePassword(password).let { isValid ->
-            _loginState = _loginState.copy(password = password, passwordError = isValid)
-        }
-    }
+    /*
+
+    Returns true if:
+    The email is empty (emailId.isEmpty()).
+    The email format is incorrect (!Patterns.EMAIL_ADDRESS.matcher(emailId).matches()).
+    Returns false if the email is valid.
+    */
 
     private fun validateEmailId(emailId: String): Boolean {
         return (emailId.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(emailId).matches())
     }
 
+    /*
+    Returns true if:
+    The password has 6 or fewer characters (invalid password).
+    Returns false if the password is strong enough.
+     */
+
     private fun validatePassword(password: String): Boolean {
         return password.length <= 6
     }
 
+    /*
+    Returns true if:
+    The email is valid (!validateEmailId(state.emailId) → email check passes).
+    The password is valid (!validatePassword(state.password) → password check passes).
+    Returns false if either email or password is invalid.
+     */
+
+    private fun isValidateInput(): Boolean {
+        val state = _loginState.value
+        return !validateEmailId(state.emailId) && !validatePassword(state.password)
+    }
+
     private fun submitLogin() {
-        viewModelScope.launch {
-            val emailIdError = validateEmailId(_loginState.emailId)
-            val passwordError = validatePassword(_loginState.password)
+        viewModelScope.launch(coroutineExceptionHandler) {
+            getState { it.copy(isLoading = true) }
+            delay(2000)
 
-            if (emailIdError && passwordError) {
-                _loginState = _loginState.copy(isLoading = true)
-                delay(2000)
-
-                _loginState = _loginState.copy(isLoading = false, isSuccess = true)
+            if (isValidateInput()) {
+                userAuthRepo.userLogin(_loginState.value.emailId, _loginState.value.password)
+                    .collect { result ->
+                        getState { it.copy(isLoading = false, loginResult = result) }
+                    }
             } else {
-                _loginState =
-                    _loginState.copy(emailIdError = emailIdError, passwordError = passwordError)
+                getState { it.copy(isLoading = false) }
             }
         }
     }

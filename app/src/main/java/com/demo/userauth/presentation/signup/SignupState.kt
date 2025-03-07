@@ -16,6 +16,9 @@ data class SignupState (
     val passwordMismatchError : Boolean = false,
     val phoneNumberError: Boolean = false,
 
+    val showPassword : Boolean = false,
+    val showConfirmPassword : Boolean = false,
+
     val isLoading: Boolean = false,
     val signupResult: Resource<String>? = null
 )

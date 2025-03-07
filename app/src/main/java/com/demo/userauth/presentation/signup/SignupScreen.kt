@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.demo.userauth.R
+import com.demo.userauth.presentation.components.CircularProgressBar
 import com.demo.userauth.presentation.components.CustomButton
 import com.demo.userauth.presentation.components.CustomImage
 import com.demo.userauth.presentation.components.CustomTextFieldForm
@@ -136,13 +137,13 @@ fun SignupScreen(
             keyboardType = KeyboardType.Password,
             placeholder = R.string.password_placeholder,
             leadingIcon = Icons.Filled.Lock,
-            trailingIcon = if (signupViewModel.showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+            trailingIcon = if (signupState.value.showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
             contentDescription = R.string.password_placeholder,
-            leadingContentDescription = if (signupViewModel.showPassword) R.string.show_password else R.string.hide_password,
+            leadingContentDescription = if (signupState.value.showPassword) R.string.show_password else R.string.hide_password,
             onTrailingIconClicked = {
-                signupViewModel.showPassword = !signupViewModel.showPassword
+               signupViewModel.handleIntent(SignupIntent.TogglePasswordVisibility)
             },
-            visualTransformation = if (signupViewModel.showPassword) {
+            visualTransformation = if (signupState.value.showPassword) {
                 VisualTransformation.None
             } else {
                 PasswordVisualTransformation()
@@ -161,13 +162,13 @@ fun SignupScreen(
             keyboardType = KeyboardType.Password,
             placeholder = R.string.conf_password_placeholder,
             leadingIcon = Icons.Filled.Lock,
-            trailingIcon = if (signupViewModel.showConfPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+            trailingIcon = if (signupState.value.showConfirmPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
             contentDescription = R.string.password_placeholder,
-            leadingContentDescription = if (signupViewModel.showConfPassword) R.string.show_password else R.string.hide_password,
+            leadingContentDescription = if (signupState.value.showConfirmPassword) R.string.show_password else R.string.hide_password,
             onTrailingIconClicked = {
-                signupViewModel.showConfPassword = !signupViewModel.showConfPassword
+                signupViewModel.handleIntent(SignupIntent.ToggleConfirmPasswordVisibility)
             },
-            visualTransformation = if (signupViewModel.showConfPassword) {
+            visualTransformation = if (signupState.value.showConfirmPassword) {
                 VisualTransformation.None
             } else {
                 PasswordVisualTransformation()
@@ -216,17 +217,7 @@ fun SignupScreen(
         }
     }
 
-
     if (signupState.value.isLoading) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f)) // Semi-transparent overlay
-                .clickable(enabled = false) {},
-            contentAlignment = Alignment.Center
-        )
-        {
-            CircularProgressIndicator()
-        }
+        CircularProgressBar()
     }
 }
