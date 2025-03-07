@@ -16,10 +16,12 @@ import com.demo.userauth.presentation.signup.SignupIntent.Submit
 import com.demo.userauth.presentation.signup.SignupIntent.ToggleConfirmPasswordVisibility
 import com.demo.userauth.presentation.signup.SignupIntent.TogglePasswordVisibility
 import com.demo.userauth.repository.UserAuthRepo
+import com.demo.userauth.utils.Resource
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 /*
@@ -163,7 +165,14 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
                         fullName = _signUpState.value.fullName,
                         password = _signUpState.value.password
                     )
-                ).collect { result ->
+                ).catch { e ->
+                    getState {
+                        it.copy(
+                            isLoading = false,
+                            signupResult = Resource.Error("Signup failed: ${e.localizedMessage}")
+                        )
+                    }
+                }.collect { result ->
                     getState { it.copy(isLoading = false, signupResult = result) }
                 }
             } else {
@@ -203,5 +212,9 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
 
     private fun validatePassword(password: String): Boolean {
         return (password.length <= 6)
+    }
+
+    fun clearSignupResult() {
+        getState { it.copy(signupResult = null) }
     }
 }

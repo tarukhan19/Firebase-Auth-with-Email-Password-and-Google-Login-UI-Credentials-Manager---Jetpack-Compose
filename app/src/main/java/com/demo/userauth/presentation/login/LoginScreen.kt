@@ -1,5 +1,6 @@
 package com.demo.userauth.presentation.login
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,8 +19,11 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -37,6 +41,7 @@ import com.demo.userauth.presentation.theme.primaryColor
 import com.demo.userauth.presentation.login.LoginIntent.EnterEmail
 import com.demo.userauth.presentation.login.LoginIntent.EnterPassword
 import com.demo.userauth.presentation.login.LoginIntent.TogglePasswordVisibility
+import com.demo.userauth.utils.Resource
 
 @Composable
 fun LoginScreen(
@@ -44,6 +49,26 @@ fun LoginScreen(
     onSignUpNavigate: () -> Unit,
 ) {
     val loginState = loginViewModel.loginState.collectAsState()
+    val context = LocalContext.current
+    val focusManager = LocalFocusManager.current  // Get focus manager
+
+    LaunchedEffect(loginState.value.loginResult) {
+        loginState.value.loginResult.let { result ->
+            when (result) {
+                is Resource.Success -> {
+                    Toast.makeText(context, result.data, Toast.LENGTH_SHORT).show()
+                    loginViewModel.clearLoginResult()
+                }
+
+                is Resource.Error -> {
+                    Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+                    loginViewModel.clearLoginResult()
+                }
+
+                else -> {} // do nothing
+            }
+        }
+    }
 
     ScaffoldUi(showToolBar = false) {
         Spacer(modifier = Modifier.padding(top = 20.dp))
@@ -100,8 +125,11 @@ fun LoginScreen(
         )
 
         CustomButton(
-            isButtonEnabled = !loginState.value.passwordError && !loginState.value.emailIdError && loginState.value.emailId.isNotEmpty() && loginState.value.password.isNotEmpty(),
-            onClick = { loginViewModel.handleIntent(LoginIntent.Submit) },
+            isButtonEnabled = loginViewModel.isValidateInput(),
+            onClick = {
+                focusManager.clearFocus()  // Hide keyboard
+                loginViewModel.handleIntent(LoginIntent.Submit)
+            },
             icon = Icons.Filled.CheckCircleOutline,
             buttonContent = stringResource(R.string.sign_in)
         )

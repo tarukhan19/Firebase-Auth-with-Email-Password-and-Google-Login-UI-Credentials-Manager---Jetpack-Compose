@@ -11,11 +11,12 @@ import com.demo.userauth.presentation.login.LoginIntent.EnterPassword
 import com.demo.userauth.presentation.login.LoginIntent.Submit
 import com.demo.userauth.presentation.login.LoginIntent.TogglePasswordVisibility
 import com.demo.userauth.repository.UserAuthRepo
+import com.demo.userauth.utils.Resource
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -62,7 +63,7 @@ class LoginViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo)
     }
 
     private fun getState(update: (LoginState) -> LoginState) {
-        _loginState.value = update(LoginState())
+        _loginState.value = update(_loginState.value)
     }
 
     /*
@@ -94,7 +95,7 @@ class LoginViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo)
     Returns false if either email or password is invalid.
      */
 
-    private fun isValidateInput(): Boolean {
+    fun isValidateInput(): Boolean {
         val state = _loginState.value
         return !validateEmailId(state.emailId) && !validatePassword(state.password)
     }
@@ -102,10 +103,12 @@ class LoginViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo)
     private fun submitLogin() {
         viewModelScope.launch(coroutineExceptionHandler) {
             getState { it.copy(isLoading = true) }
-            delay(2000)
 
             if (isValidateInput()) {
                 userAuthRepo.userLogin(_loginState.value.emailId, _loginState.value.password)
+                    .catch { e ->
+                        getState { it.copy(isLoading = false, loginResult = Resource.Error("Login failed: ${e.localizedMessage}")) }
+                    }
                     .collect { result ->
                         getState { it.copy(isLoading = false, loginResult = result) }
                     }
@@ -113,5 +116,9 @@ class LoginViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo)
                 getState { it.copy(isLoading = false) }
             }
         }
+    }
+
+    fun clearLoginResult() {
+        getState { it.copy(loginResult = null) }
     }
 }
