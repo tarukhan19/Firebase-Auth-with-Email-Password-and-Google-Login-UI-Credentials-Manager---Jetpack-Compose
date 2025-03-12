@@ -1,4 +1,4 @@
-package com.demo.userauth.presentation.signup
+package com.demo.userauth.presentation.intent
 
 sealed interface SignupIntent {
 

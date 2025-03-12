@@ -10,4 +10,7 @@ sealed interface ScreenRoute {
 
     @Serializable
     data object Signup: ScreenRoute
+
+    @Serializable
+    data object Home : ScreenRoute
 }

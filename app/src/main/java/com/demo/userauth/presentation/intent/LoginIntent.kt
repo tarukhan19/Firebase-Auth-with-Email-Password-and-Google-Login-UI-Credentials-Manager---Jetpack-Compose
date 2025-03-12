@@ -1,4 +1,4 @@
-package com.demo.userauth.presentation.login
+package com.demo.userauth.presentation.intent
 
 sealed interface LoginIntent {
     data class EnterEmail(val email: String) : LoginIntent

@@ -1,4 +1,4 @@
-package com.demo.userauth.presentation.login
+package com.demo.userauth.presentation.screen
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -37,17 +37,20 @@ import com.demo.userauth.presentation.components.CustomImage
 import com.demo.userauth.presentation.components.CustomTextFieldForm
 import com.demo.userauth.presentation.components.CustomTextForm
 import com.demo.userauth.presentation.components.ScaffoldUi
+import com.demo.userauth.presentation.intent.LoginIntent.EnterEmail
+import com.demo.userauth.presentation.intent.LoginIntent.EnterPassword
+import com.demo.userauth.presentation.intent.LoginIntent.Submit
+import com.demo.userauth.presentation.intent.LoginIntent.TogglePasswordVisibility
 import com.demo.userauth.presentation.theme.primaryColor
-import com.demo.userauth.presentation.login.LoginIntent.EnterEmail
-import com.demo.userauth.presentation.login.LoginIntent.EnterPassword
-import com.demo.userauth.presentation.login.LoginIntent.TogglePasswordVisibility
+import com.demo.userauth.presentation.viewmodel.LoginViewModel
 import com.demo.userauth.utils.Resource
 
 @Composable
 fun LoginScreen(
     loginViewModel: LoginViewModel = hiltViewModel(),
     onSignUpNavigate: () -> Unit,
-) {
+    onHomeNavigate: () -> Unit,
+    ) {
     val loginState = loginViewModel.loginState.collectAsState()
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current  // Get focus manager
@@ -57,12 +60,12 @@ fun LoginScreen(
             when (result) {
                 is Resource.Success -> {
                     Toast.makeText(context, result.data, Toast.LENGTH_SHORT).show()
-                    loginViewModel.clearLoginResult()
+                    loginViewModel.saveLoginStatus(true)
+                    onHomeNavigate()
                 }
 
                 is Resource.Error -> {
                     Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
-                    loginViewModel.clearLoginResult()
                 }
 
                 else -> {} // do nothing
@@ -128,7 +131,7 @@ fun LoginScreen(
             isButtonEnabled = loginViewModel.isValidateInput(),
             onClick = {
                 focusManager.clearFocus()  // Hide keyboard
-                loginViewModel.handleIntent(LoginIntent.Submit)
+                loginViewModel.handleIntent(Submit)
             },
             icon = Icons.Filled.CheckCircleOutline,
             buttonContent = stringResource(R.string.sign_in)
