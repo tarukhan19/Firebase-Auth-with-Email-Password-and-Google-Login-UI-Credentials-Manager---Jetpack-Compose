@@ -12,6 +12,13 @@ import javax.inject.Inject
 @HiltViewModel
 class SharedViewModel @Inject constructor(userPreferences: UserPreferences) : ViewModel() {
 
-    // Properly collect login state as a StateFlow
-    val isLoggedIn: StateFlow<Boolean> = userPreferences.getLoginState.stateIn(viewModelScope, SharingStarted.Lazily, true)
+    /*
+    👉 This code transforms a Flow<Boolean> (from userPreferences) into a StateFlow<Boolean>,
+    ensuring the UI always has access to the latest login state.
+    👉 It optimizes resource usage with SharingStarted.Lazily by collecting only when needed,
+    reducing unnecessary computations.
+    👉 Using viewModelScope, it ensures safe lifecycle management within the ViewModel.
+     */
+    val isLoggedIn: StateFlow<Boolean> =
+        userPreferences.getLoginState.stateIn(viewModelScope, SharingStarted.Lazily, false)
 }

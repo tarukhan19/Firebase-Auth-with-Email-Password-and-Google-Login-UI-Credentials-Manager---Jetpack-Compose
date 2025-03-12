@@ -19,6 +19,11 @@ import com.demo.userauth.presentation.intent.SignupIntent.TogglePasswordVisibili
 import com.demo.userauth.presentation.state.SignupState
 import com.demo.userauth.repository.UserAuthRepo
 import com.demo.userauth.utils.Resource
+import com.demo.userauth.utils.isValidEmail
+import com.demo.userauth.utils.isValidName
+import com.demo.userauth.utils.isValidPassword
+import com.demo.userauth.utils.isValidPhoneNumber
+import com.demo.userauth.utils.matchesPassword
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -81,7 +86,7 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
                 getState {
                     it.copy(
                         fullName = signupIntent.fullName,
-                        fullNameError = validateName(signupIntent.fullName)
+                        fullNameError = (signupIntent.fullName.isValidName())
                     )
                 }
             }
@@ -90,7 +95,7 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
                 getState {
                     it.copy(
                         emailId = signupIntent.emailId,
-                        emailIdError = validateEmailId(signupIntent.emailId)
+                        emailIdError = (signupIntent.emailId.isValidEmail())
                     )
                 }
             }
@@ -100,11 +105,8 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
                     val confirmPassword = _signUpState.value.confirmPassword
                     it.copy(
                         password = signupIntent.password,
-                        passwordError = validatePassword(signupIntent.password),
-                        passwordMismatchError = validatePasswordMatch(
-                            signupIntent.password,
-                            confirmPassword
-                        )
+                        passwordError = (signupIntent.password.isValidPassword()),
+                        passwordMismatchError = signupIntent.password.matchesPassword(confirmPassword),
                     )
                 }
             }
@@ -114,11 +116,8 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
                     val password = _signUpState.value.password
                     it.copy(
                         confirmPassword = signupIntent.confirmPassword,
-                        confPasswordError = validatePassword(signupIntent.confirmPassword),
-                        passwordMismatchError = validatePasswordMatch(
-                            password,
-                            signupIntent.confirmPassword
-                        )
+                        confPasswordError = signupIntent.confirmPassword.isValidPassword(),
+                        passwordMismatchError = signupIntent.confirmPassword.matchesPassword(password)
                     )
                 }
             }
@@ -127,7 +126,7 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
                 getState {
                     it.copy(
                         phoneNumber = signupIntent.phoneNumber,
-                        phoneNumberError = validateMobileNumber(signupIntent.phoneNumber)
+                        phoneNumberError = (signupIntent.phoneNumber.isValidPhoneNumber())
                     )
                 }
             }
@@ -189,31 +188,11 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
 
     fun validateInput(): Boolean {
         val state = _signUpState.value
-        return (!validateName(state.fullName)
-                && !validateMobileNumber(state.phoneNumber)
-                && !validateEmailId(state.emailId)
-                && !validatePassword(state.password))
-                && !validatePasswordMatch(state.password, state.confirmPassword)
-    }
-
-    private fun validatePasswordMatch(password: String, confirmPassword: String): Boolean {
-        return (password.length > 6 && confirmPassword.length > 6 && password != confirmPassword)
-    }
-
-    private fun validateName(fullName: String): Boolean {
-        return (fullName.isEmpty() || fullName.length <= 4)
-    }
-
-    private fun validateMobileNumber(phoneNumber: String): Boolean {
-        return (phoneNumber.isEmpty() || phoneNumber.length < 9)
-    }
-
-    private fun validateEmailId(emailId: String): Boolean {
-        return (emailId.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(emailId).matches())
-    }
-
-    private fun validatePassword(password: String): Boolean {
-        return (password.length <= 6)
+        return (!state.fullName.isValidName()
+                && !state.phoneNumber.isValidPhoneNumber()
+                && !state.emailId.isValidEmail()
+                && !state.password.isValidPassword()
+                && !state.password.matchesPassword(state.confirmPassword))
     }
 
     fun clearSignupResult() {
