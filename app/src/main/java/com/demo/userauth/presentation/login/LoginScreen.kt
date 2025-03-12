@@ -46,6 +46,7 @@ import com.demo.userauth.utils.Resource
 @Composable
 fun LoginScreen(
     loginViewModel: LoginViewModel = hiltViewModel(),
+    onHomeNavigate : () -> Unit,
     onSignUpNavigate: () -> Unit,
 ) {
     val loginState = loginViewModel.loginState.collectAsState()
@@ -58,6 +59,7 @@ fun LoginScreen(
                 is Resource.Success -> {
                     Toast.makeText(context, result.data, Toast.LENGTH_SHORT).show()
                     loginViewModel.clearLoginResult()
+                    onHomeNavigate()
                 }
 
                 is Resource.Error -> {

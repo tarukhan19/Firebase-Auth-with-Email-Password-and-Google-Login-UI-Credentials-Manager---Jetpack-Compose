@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import android.util.Patterns
 import androidx.lifecycle.viewModelScope
+import com.demo.userauth.data.datastore.UserPreferences
 import com.demo.userauth.presentation.login.LoginIntent.EnterEmail
 import com.demo.userauth.presentation.login.LoginIntent.EnterPassword
 import com.demo.userauth.presentation.login.LoginIntent.Submit
@@ -14,13 +15,18 @@ import com.demo.userauth.repository.UserAuthRepo
 import com.demo.userauth.utils.Resource
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo) : ViewModel() {
+class LoginViewModel @Inject constructor(
+    private val userAuthRepo: UserAuthRepo,
+    private val userPreferences: UserPreferences
+) : ViewModel() {
 
     private val _loginState = MutableStateFlow(LoginState())
     val loginState: StateFlow<LoginState> = _loginState.asStateFlow()
@@ -107,7 +113,12 @@ class LoginViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo)
             if (isValidateInput()) {
                 userAuthRepo.userLogin(_loginState.value.emailId, _loginState.value.password)
                     .catch { e ->
-                        getState { it.copy(isLoading = false, loginResult = Resource.Error("Login failed: ${e.localizedMessage}")) }
+                        getState {
+                            it.copy(
+                                isLoading = false,
+                                loginResult = Resource.Error("Login failed: ${e.localizedMessage}")
+                            )
+                        }
                     }
                     .collect { result ->
                         getState { it.copy(isLoading = false, loginResult = result) }

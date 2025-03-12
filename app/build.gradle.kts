@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.konan.properties.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -18,8 +20,18 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
+        android.buildFeatures.buildConfig = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        /* to read api key from local.properties. Define API Keys inside local.properties and retrieve it here. in kotlin code,
+        we can achieve the API key using BuildConfig.API
+        BuildConfig file is generated during compile time.
+        Normally we should define our API keys in server but this is one of other option to make it work locally. we should never
+        define the API key inside classes.
+         */
+        val properties= Properties()
+        properties.load(project.rootProject.file("local.properties").inputStream())
+        buildConfigField ("String","API_KEY","\"${properties.getProperty("API_KEY")}\"")
     }
 
     buildTypes {
