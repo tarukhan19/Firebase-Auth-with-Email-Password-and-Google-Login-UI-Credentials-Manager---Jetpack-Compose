@@ -1,4 +1,4 @@
-package com.demo.userauth.presentation.login
+package com.demo.userauth.presentation.state
 
 import com.demo.userauth.utils.Resource
 

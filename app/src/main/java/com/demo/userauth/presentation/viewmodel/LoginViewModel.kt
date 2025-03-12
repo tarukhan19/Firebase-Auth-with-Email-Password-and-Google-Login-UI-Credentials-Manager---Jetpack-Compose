@@ -1,4 +1,4 @@
-package com.demo.userauth.presentation.login
+package com.demo.userauth.presentation.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -7,10 +7,12 @@ import javax.inject.Inject
 import android.util.Patterns
 import androidx.lifecycle.viewModelScope
 import com.demo.userauth.data.datastore.UserPreferences
-import com.demo.userauth.presentation.login.LoginIntent.EnterEmail
-import com.demo.userauth.presentation.login.LoginIntent.EnterPassword
-import com.demo.userauth.presentation.login.LoginIntent.Submit
-import com.demo.userauth.presentation.login.LoginIntent.TogglePasswordVisibility
+import com.demo.userauth.presentation.intent.LoginIntent
+import com.demo.userauth.presentation.intent.LoginIntent.EnterEmail
+import com.demo.userauth.presentation.intent.LoginIntent.EnterPassword
+import com.demo.userauth.presentation.intent.LoginIntent.Submit
+import com.demo.userauth.presentation.intent.LoginIntent.TogglePasswordVisibility
+import com.demo.userauth.presentation.state.LoginState
 import com.demo.userauth.repository.UserAuthRepo
 import com.demo.userauth.utils.Resource
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -35,6 +37,10 @@ class LoginViewModel @Inject constructor(
         CoroutineExceptionHandler { _, throwable ->
             Log.e("CoroutineError", "Exception caught: ${throwable.localizedMessage}")
         }
+
+    suspend fun saveLoginStatus(loginStatus : Boolean) {
+        userPreferences.saveLoginStatus(loginStatus)
+    }
 
     fun handleIntent(loginIntent: LoginIntent) {
         when (loginIntent) {
@@ -127,9 +133,5 @@ class LoginViewModel @Inject constructor(
                 getState { it.copy(isLoading = false) }
             }
         }
-    }
-
-    fun clearLoginResult() {
-        getState { it.copy(loginResult = null) }
     }
 }

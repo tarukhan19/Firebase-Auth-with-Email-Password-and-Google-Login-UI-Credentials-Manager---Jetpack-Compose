@@ -1,4 +1,4 @@
-package com.demo.userauth.presentation.signup
+package com.demo.userauth.presentation.screen
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -39,13 +39,15 @@ import com.demo.userauth.presentation.components.CustomImage
 import com.demo.userauth.presentation.components.CustomTextFieldForm
 import com.demo.userauth.presentation.components.CustomTextForm
 import com.demo.userauth.presentation.components.ScaffoldUi
+import com.demo.userauth.presentation.intent.SignupIntent
+import com.demo.userauth.presentation.intent.SignupIntent.EnterConfirmPassword
+import com.demo.userauth.presentation.intent.SignupIntent.EnterEmail
+import com.demo.userauth.presentation.intent.SignupIntent.EnterFullName
+import com.demo.userauth.presentation.intent.SignupIntent.EnterPassword
+import com.demo.userauth.presentation.intent.SignupIntent.EnterPhoneNumber
+import com.demo.userauth.presentation.intent.SignupIntent.Submit
 import com.demo.userauth.presentation.theme.primaryColor
-import com.demo.userauth.presentation.signup.SignupIntent.EnterConfirmPassword
-import com.demo.userauth.presentation.signup.SignupIntent.EnterPassword
-import com.demo.userauth.presentation.signup.SignupIntent.EnterEmail
-import com.demo.userauth.presentation.signup.SignupIntent.EnterFullName
-import com.demo.userauth.presentation.signup.SignupIntent.EnterPhoneNumber
-import com.demo.userauth.presentation.signup.SignupIntent.Submit
+import com.demo.userauth.presentation.viewmodel.SignupViewModel
 import com.demo.userauth.utils.Resource
 
 @Composable

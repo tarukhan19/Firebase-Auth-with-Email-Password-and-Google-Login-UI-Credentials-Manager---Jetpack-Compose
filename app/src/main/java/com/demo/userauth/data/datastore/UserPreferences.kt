@@ -24,7 +24,8 @@ class UserPreferences @Inject constructor(private val dataStore: DataStore<Prefe
     }
 
     // read login status
-    val isLoggedInFlow : Flow<Boolean?> = dataStore.data.map { preference ->
-        preference[KEY_IS_LOGGED_IN] // Returns Boolean? (true, false, or null)
-    }
+    val getLoginState: Flow<Boolean> = dataStore.data
+        .map { preferences ->
+            preferences[KEY_IS_LOGGED_IN] ?: false
+        }
 }

@@ -1,4 +1,4 @@
-package com.demo.userauth.presentation.signup
+package com.demo.userauth.presentation.viewmodel
 
 import android.util.Log
 import android.util.Patterns
@@ -7,14 +7,16 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.demo.userauth.data.local.entity.UserEntity
-import com.demo.userauth.presentation.signup.SignupIntent.EnterConfirmPassword
-import com.demo.userauth.presentation.signup.SignupIntent.EnterEmail
-import com.demo.userauth.presentation.signup.SignupIntent.EnterFullName
-import com.demo.userauth.presentation.signup.SignupIntent.EnterPassword
-import com.demo.userauth.presentation.signup.SignupIntent.EnterPhoneNumber
-import com.demo.userauth.presentation.signup.SignupIntent.Submit
-import com.demo.userauth.presentation.signup.SignupIntent.ToggleConfirmPasswordVisibility
-import com.demo.userauth.presentation.signup.SignupIntent.TogglePasswordVisibility
+import com.demo.userauth.presentation.intent.SignupIntent
+import com.demo.userauth.presentation.intent.SignupIntent.EnterConfirmPassword
+import com.demo.userauth.presentation.intent.SignupIntent.EnterEmail
+import com.demo.userauth.presentation.intent.SignupIntent.EnterFullName
+import com.demo.userauth.presentation.intent.SignupIntent.EnterPassword
+import com.demo.userauth.presentation.intent.SignupIntent.EnterPhoneNumber
+import com.demo.userauth.presentation.intent.SignupIntent.Submit
+import com.demo.userauth.presentation.intent.SignupIntent.ToggleConfirmPasswordVisibility
+import com.demo.userauth.presentation.intent.SignupIntent.TogglePasswordVisibility
+import com.demo.userauth.presentation.state.SignupState
 import com.demo.userauth.repository.UserAuthRepo
 import com.demo.userauth.utils.Resource
 import kotlinx.coroutines.CoroutineExceptionHandler
