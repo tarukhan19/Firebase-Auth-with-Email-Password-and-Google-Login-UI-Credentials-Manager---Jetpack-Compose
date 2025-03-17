@@ -38,6 +38,7 @@ import com.demo.userauth.presentation.components.CustomButton
 import com.demo.userauth.presentation.components.CustomImage
 import com.demo.userauth.presentation.components.CustomTextFieldForm
 import com.demo.userauth.presentation.components.CustomTextForm
+import com.demo.userauth.presentation.components.Divider
 import com.demo.userauth.presentation.components.GoogleSignInButton
 import com.demo.userauth.presentation.components.ScaffoldUi
 import com.demo.userauth.presentation.intent.LoginIntent.EnterEmail
@@ -144,9 +145,7 @@ fun LoginScreen(
             icon = Icons.Filled.CheckCircleOutline,
             buttonContent = stringResource(R.string.sign_in)
         )
-
-        Spacer(modifier = Modifier.padding(top = 10.dp))
-
+        Divider()
         GoogleSignInButton (onClick = { loginViewModel.handleIntent(GoogleLogin) })
 
         Row(

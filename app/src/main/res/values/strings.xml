@@ -16,7 +16,8 @@
     <string name="already_have_acc">Already have an account?</string>
     <string name="full_name">Full Name</string>
     <string name="full_name_placeholder">Enter you Full Name</string>
-
+    <string name="tnc_text">I accept terms &amp; conditions.</string>
+    <string name="accept_tnc_error">Accept TNC for successful registration</string>
     <string name="default_web_client_id">107603759071-q7gpna0nupoa84fr9osfbm7ui3klk8os.apps.googleusercontent.com</string>
 
     <string name="app_icon">App Icon</string>

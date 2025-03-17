@@ -16,6 +16,7 @@ import com.demo.userauth.presentation.intent.SignupIntent.EnterPhoneNumber
 import com.demo.userauth.presentation.intent.SignupIntent.Submit
 import com.demo.userauth.presentation.intent.SignupIntent.ToggleConfirmPasswordVisibility
 import com.demo.userauth.presentation.intent.SignupIntent.TogglePasswordVisibility
+import com.demo.userauth.presentation.intent.SignupIntent.ToggleTnc
 import com.demo.userauth.presentation.state.SignupState
 import com.demo.userauth.repository.UserAuthRepo
 import com.demo.userauth.utils.Resource
@@ -147,6 +148,10 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
                 }
             }
 
+            is ToggleTnc -> {
+                getState { it.copy(isTncAccepted = !it.isTncAccepted) }
+            }
+
             is Submit -> {
                 registerUser()
             }
@@ -192,7 +197,8 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
                 && !state.phoneNumber.isValidPhoneNumber()
                 && !state.emailId.isValidEmail()
                 && !state.password.isValidPassword()
-                && !state.password.matchesPassword(state.confirmPassword))
+                && !state.password.matchesPassword(state.confirmPassword)
+                && state.isTncAccepted)
     }
 
     fun clearSignupResult() {

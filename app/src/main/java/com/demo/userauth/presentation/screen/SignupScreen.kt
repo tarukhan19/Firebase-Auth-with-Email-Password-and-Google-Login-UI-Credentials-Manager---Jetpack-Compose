@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.MobileFriendly
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Checkbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,6 +50,7 @@ import com.demo.userauth.presentation.intent.SignupIntent.Submit
 import com.demo.userauth.presentation.theme.primaryColor
 import com.demo.userauth.presentation.viewmodel.SignupViewModel
 import com.demo.userauth.utils.Resource
+import java.time.format.TextStyle
 
 @Composable
 fun SignupScreen(
@@ -190,6 +192,20 @@ fun SignupScreen(
             leadingIcon = Icons.Filled.MobileFriendly,
             contentDescription = R.string.phone_number_placeholder,
         )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = signupState.value.isTncAccepted,
+                onCheckedChange = { signupViewModel.handleIntent(SignupIntent.ToggleTnc) }
+            )
+            CustomTextForm(text = R.string.tnc_text)
+        }
+
         CustomButton(
             isButtonEnabled = signupViewModel.validateInput(),
             onClick = {

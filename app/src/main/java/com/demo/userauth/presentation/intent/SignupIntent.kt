@@ -9,6 +9,7 @@ sealed interface SignupIntent {
     data class EnterConfirmPassword(val confirmPassword: String)  : SignupIntent
 
     object Submit : SignupIntent
+    object ToggleTnc : SignupIntent
 
     object TogglePasswordVisibility : SignupIntent
     object ToggleConfirmPasswordVisibility : SignupIntent
