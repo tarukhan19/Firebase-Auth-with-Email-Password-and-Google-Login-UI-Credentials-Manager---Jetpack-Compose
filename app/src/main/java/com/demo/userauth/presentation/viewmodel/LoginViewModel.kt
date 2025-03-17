@@ -33,7 +33,7 @@ class LoginViewModel @Inject constructor(
 
     private val _loginState = MutableStateFlow(LoginState())
     val loginState: StateFlow<LoginState> = _loginState.asStateFlow()
-    lateinit var googleAuthUiClient : GoogleAuthUiClient
+    lateinit var googleAuthUiClient: GoogleAuthUiClient
 
     val coroutineExceptionHandler: CoroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
@@ -93,23 +93,8 @@ class LoginViewModel @Inject constructor(
         getState { it.copy(isLoading = true) }
 
         viewModelScope.launch(coroutineExceptionHandler) {
-            val isGoogleSignIn = googleAuthUiClient.signIn()
-            if (isGoogleSignIn) {
-                getState {
-                    it.copy(
-                        isLoading = false,
-                        loginResult = Resource.Success("Google signIn successful")
-                    )
-                }
-            }
-            else {
-                getState {
-                    it.copy(
-                        isLoading = false,
-                        loginResult = Resource.Error("Google signed failed!")
-                    )
-                }
-            }
+            val result = googleAuthUiClient.signIn()
+            getState { it.copy(isLoading = false, loginResult = result) }
         }
     }
 
