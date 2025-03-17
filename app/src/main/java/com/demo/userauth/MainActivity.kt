@@ -1,20 +1,17 @@
 package com.demo.userauth
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.Crossfade
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.demo.userauth.data.datastore.UserPreferences
 import com.demo.userauth.presentation.navigation.ScreenRoute.Login
 import com.demo.userauth.presentation.navigation.ScreenRoute.Signup
 import com.demo.userauth.presentation.navigation.ScreenRoute
@@ -25,7 +22,6 @@ import com.demo.userauth.presentation.screen.SignupScreen
 import com.demo.userauth.presentation.theme.UserAuthTheme
 import com.demo.userauth.presentation.viewmodel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -46,28 +42,36 @@ fun AppNavigation(
     sharedViewModel: SharedViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
-    val isLoggedIn = sharedViewModel.isLoggedIn.collectAsState().value
-    val startDestination = if(isLoggedIn) Home else Login
-    NavHost(
-        navController = navController,
-        startDestination = startDestination
-    ) {
-        composable<Login> {
-            LoginScreen(
-                onSignUpNavigate = { navController.navigateToSingleTop(Signup) },
-                onHomeNavigate = { navController.navigateToSingleTop(Home) }
-            )
-        }
-        composable<Signup> {
-            SignupScreen(
-                onLogInNavigate = { navController.navigateToSingleTop(Login) }
-            )
-        }
-        composable<Home> {
-            HomeScreen()
+    val isLoggedInState = sharedViewModel.isLoggedIn.collectAsState()
+    val isDataLoaded = sharedViewModel.isDataLoaded.collectAsState().value
+
+    Crossfade(targetState = isDataLoaded) { loaded ->
+        if (loaded) {
+            val startDestination = if (isLoggedInState.value) Home else Login
+
+            NavHost(
+                navController = navController,
+                startDestination = startDestination
+            ) {
+                composable<Login> {
+                    LoginScreen(
+                        onSignUpNavigate = { navController.navigateToSingleTop(Signup) },
+                        onHomeNavigate = { navController.navigateToSingleTop(Home) }
+                    )
+                }
+                composable<Signup> {
+                    SignupScreen(
+                        onLogInNavigate = { navController.navigateToSingleTop(Login) }
+                    )
+                }
+                composable<Home> {
+                    HomeScreen()
+                }
+            }
         }
     }
 }
+
 
 fun NavController.navigateToSingleTop(screenRoute: ScreenRoute) {
     this.navigate(screenRoute) {

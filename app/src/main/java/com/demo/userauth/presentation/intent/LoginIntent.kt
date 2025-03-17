@@ -6,5 +6,5 @@ sealed interface LoginIntent {
 
     object TogglePasswordVisibility : LoginIntent
     object Submit : LoginIntent
-
+    object GoogleLogin : LoginIntent
 }
