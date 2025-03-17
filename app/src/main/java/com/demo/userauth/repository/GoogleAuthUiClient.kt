@@ -10,6 +10,7 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CancellationException
 import com.demo.userauth.R
+import com.demo.userauth.utils.Resource
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import com.google.firebase.auth.GoogleAuthProvider
@@ -32,21 +33,19 @@ class GoogleAuthUiClient @Inject constructor(private val activity: Activity) {
         }
     }
 
-    suspend fun signIn(): Boolean {
+    suspend fun signIn(): Resource<String> {
         if (isSignedIn()) {
-            return true
+            return Resource.Success("Already Signed In")
         }
 
-        try {
+        return try {
             val result = buildCredentialRequest()
-            return handleSignIn(result)
+            handleSignIn(result)
         } catch (e: Exception) {
             e.printStackTrace()
 
             if (e is CancellationException) throw e
-            println(tag + " SignIn Error: {${e.message}}")
-
-            return false
+            Resource.Error("Sign-in failed: ${e.localizedMessage ?: "Unknown error"}")
         }
     }
 
@@ -63,7 +62,7 @@ class GoogleAuthUiClient @Inject constructor(private val activity: Activity) {
         return credentialManager.getCredential(context = activity, request = request)
     }
 
-    private suspend fun handleSignIn(result: GetCredentialResponse): Boolean {
+    private suspend fun handleSignIn(result: GetCredentialResponse): Resource<String> {
         val credential = result.credential
         if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
             try {
@@ -75,17 +74,21 @@ class GoogleAuthUiClient @Inject constructor(private val activity: Activity) {
                 val authCredential = GoogleAuthProvider.getCredential(tokenCredential.idToken, null)
                 val authResult = firebaseAuth.signInWithCredential(authCredential).await()
 
-                return authResult.user != null
-
+                if (authResult.user != null) {
+                   return Resource.Success("Sign-in successful")
+                } else {
+                    return Resource.Error("Authentication failed: No user found")
+                }
             } catch (e: GoogleIdTokenParsingException) {
                 println(tag + "GoogleIdTokenParsingException: ${e.message} ")
 
-                return false
+                return Resource.Error("Invalid Google token: ${e.message}")
+
             }
         } else {
             println(tag + "credential is not GoogleIdTokenCredential")
 
-            return false
+            return Resource.Error("Credential is not GoogleIdTokenCredential")
         }
     }
 
