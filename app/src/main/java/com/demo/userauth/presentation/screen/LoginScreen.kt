@@ -1,6 +1,7 @@
 package com.demo.userauth.presentation.screen
 
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -36,13 +38,17 @@ import com.demo.userauth.presentation.components.CustomButton
 import com.demo.userauth.presentation.components.CustomImage
 import com.demo.userauth.presentation.components.CustomTextFieldForm
 import com.demo.userauth.presentation.components.CustomTextForm
+import com.demo.userauth.presentation.components.Divider
+import com.demo.userauth.presentation.components.GoogleSignInButton
 import com.demo.userauth.presentation.components.ScaffoldUi
 import com.demo.userauth.presentation.intent.LoginIntent.EnterEmail
 import com.demo.userauth.presentation.intent.LoginIntent.EnterPassword
+import com.demo.userauth.presentation.intent.LoginIntent.GoogleLogin
 import com.demo.userauth.presentation.intent.LoginIntent.Submit
 import com.demo.userauth.presentation.intent.LoginIntent.TogglePasswordVisibility
 import com.demo.userauth.presentation.theme.primaryColor
 import com.demo.userauth.presentation.viewmodel.LoginViewModel
+import com.demo.userauth.repository.GoogleAuthUiClient
 import com.demo.userauth.utils.Resource
 
 @Composable
@@ -54,6 +60,9 @@ fun LoginScreen(
     val loginState = loginViewModel.loginState.collectAsState()
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current  // Get focus manager
+    loginViewModel.googleAuthUiClient = remember {
+        GoogleAuthUiClient(context as ComponentActivity)
+    }
 
     LaunchedEffect(loginState.value.loginResult) {
         loginState.value.loginResult.let { result ->
@@ -136,8 +145,8 @@ fun LoginScreen(
             icon = Icons.Filled.CheckCircleOutline,
             buttonContent = stringResource(R.string.sign_in)
         )
-
-        Spacer(modifier = Modifier.padding(top = 10.dp))
+        Divider()
+        GoogleSignInButton (onClick = { loginViewModel.handleIntent(GoogleLogin) })
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -162,4 +171,3 @@ fun LoginScreen(
         CircularProgressBar()
     }
 }
-

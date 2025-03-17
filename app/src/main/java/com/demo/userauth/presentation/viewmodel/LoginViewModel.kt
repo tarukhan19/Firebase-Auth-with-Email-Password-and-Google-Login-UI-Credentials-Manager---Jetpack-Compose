@@ -9,37 +9,38 @@ import com.demo.userauth.data.datastore.UserPreferences
 import com.demo.userauth.presentation.intent.LoginIntent
 import com.demo.userauth.presentation.intent.LoginIntent.EnterEmail
 import com.demo.userauth.presentation.intent.LoginIntent.EnterPassword
+import com.demo.userauth.presentation.intent.LoginIntent.GoogleLogin
 import com.demo.userauth.presentation.intent.LoginIntent.Submit
 import com.demo.userauth.presentation.intent.LoginIntent.TogglePasswordVisibility
 import com.demo.userauth.presentation.state.LoginState
+import com.demo.userauth.repository.GoogleAuthUiClient
 import com.demo.userauth.repository.UserAuthRepo
 import com.demo.userauth.utils.Resource
 import com.demo.userauth.utils.isValidEmail
 import com.demo.userauth.utils.isValidPassword
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val userAuthRepo: UserAuthRepo,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow(LoginState())
     val loginState: StateFlow<LoginState> = _loginState.asStateFlow()
+    lateinit var googleAuthUiClient : GoogleAuthUiClient
 
     val coroutineExceptionHandler: CoroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
             Log.e("CoroutineError", "Exception caught: ${throwable.localizedMessage}")
         }
 
-    suspend fun saveLoginStatus(loginStatus : Boolean) {
+    suspend fun saveLoginStatus(loginStatus: Boolean) {
         userPreferences.saveLoginStatus(loginStatus)
     }
 
@@ -72,6 +73,10 @@ class LoginViewModel @Inject constructor(
             is Submit -> {
                 submitLogin()
             }
+
+            is GoogleLogin -> {
+                googleSignIn()
+            }
         }
     }
 
@@ -82,6 +87,30 @@ class LoginViewModel @Inject constructor(
     fun isValidateInput(): Boolean {
         val state = _loginState.value
         return !state.emailId.isValidEmail() && !state.password.isValidPassword()
+    }
+
+    private fun googleSignIn() {
+        getState { it.copy(isLoading = true) }
+
+        viewModelScope.launch(coroutineExceptionHandler) {
+            val isGoogleSignIn = googleAuthUiClient.signIn()
+            if (isGoogleSignIn) {
+                getState {
+                    it.copy(
+                        isLoading = false,
+                        loginResult = Resource.Success("Google signIn successful")
+                    )
+                }
+            }
+            else {
+                getState {
+                    it.copy(
+                        isLoading = false,
+                        loginResult = Resource.Error("Google signed failed!")
+                    )
+                }
+            }
+        }
     }
 
     private fun submitLogin() {

@@ -7,16 +7,20 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.1"
-composeBom = "2025.02.00"
+composeBom = "2025.03.00"
 splash = "1.0.1"
 hilt = "2.51"
 hilt-androidx = "1.2.0"
 ext-material-icon = "1.7.8"
-composeNavigation = "2.8.8"
+composeNavigation = "2.8.9"
 serialization = "1.6.3"
 room-ver = "2.6.1"
 ksp = "2.0.21-1.0.27"
 datastore = "1.1.3"
+googlever = "4.4.2"
+firebase = "33.10.0"
+credentials = "1.3.0"
+googleidVer = "1.1.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -44,6 +48,11 @@ androidx-rooms-runtime = { group = "androidx.room", name = "room-runtime", versi
 androidx-rooms-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room-ver" }
 androidx-rooms-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room-ver" }
 androidx-datastore = {group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore"}
+firebase-bom = {group = "com.google.firebase", name = "firebase-bom",  version.ref = "firebase"}
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth"}
+androidx-credential = { group = "androidx.credentials", name = "credentials", version.ref= "credentials" }
+androidx-credential-playservice = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }
+identity-googleid = { group = "com.google.android.libraries.identity.googleid" , name = "googleid" , version.ref = "googleidVer" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -52,3 +61,4 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp"}
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googlever"}

@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.hilt)
     id("kotlin-kapt") // Required for Hilt compiler
     id("com.google.devtools.ksp") // required for KSP
+    id("com.google.gms.google-services") // required for google services
     alias(libs.plugins.kotlin.serialization)
 }
 
@@ -82,6 +83,13 @@ dependencies {
     implementation(libs.androidx.rooms.ktx)
     // datastore
     implementation(libs.androidx.datastore)
+    //google-signIn
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.androidx.credential)
+    implementation(libs.androidx.credential.playservice)
+    implementation(libs.identity.googleid)
+
     // testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

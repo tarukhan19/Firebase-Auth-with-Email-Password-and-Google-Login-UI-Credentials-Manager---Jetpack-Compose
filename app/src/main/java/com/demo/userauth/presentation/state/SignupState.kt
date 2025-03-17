@@ -19,6 +19,8 @@ data class SignupState (
     val showPassword : Boolean = false,
     val showConfirmPassword : Boolean = false,
 
+    val isTncAccepted: Boolean = false,
+
     val isLoading: Boolean = false,
     val signupResult: Resource<String>? = null
 )
