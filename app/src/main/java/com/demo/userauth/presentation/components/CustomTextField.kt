@@ -1,5 +1,6 @@
 package com.demo.userauth.presentation.components
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -17,13 +18,14 @@ import androidx.compose.ui.unit.sp
 fun CustomTextForm(
     text: Int,
     modifier: Modifier = Modifier,
-    color: Color = Color.Black,
     fontSize: TextUnit = 14.sp,
     fontFamily: FontFamily = FontFamily.SansSerif,
     textAlign: TextAlign = TextAlign.Center,
     maxLines: Int = 1,
     minLines: Int = 1,
-    fontWeight: FontWeight = FontWeight.Normal
+    fontWeight: FontWeight = FontWeight.Normal,
+    color: Color = MaterialTheme.colorScheme.onBackground,
+
 
 ) {
     Text(
