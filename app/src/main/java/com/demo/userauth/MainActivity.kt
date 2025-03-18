@@ -18,6 +18,8 @@ import com.demo.userauth.presentation.navigation.ScreenRoute
 import com.demo.userauth.presentation.navigation.ScreenRoute.Home
 import com.demo.userauth.presentation.screen.HomeScreen
 import com.demo.userauth.presentation.screen.LoginScreen
+import com.demo.userauth.presentation.screen.LoginScreenRoot
+import com.demo.userauth.presentation.screen.SignUpRoot
 import com.demo.userauth.presentation.screen.SignupScreen
 import com.demo.userauth.presentation.theme.UserAuthTheme
 import com.demo.userauth.presentation.viewmodel.SharedViewModel
@@ -54,13 +56,13 @@ fun AppNavigation(
                 startDestination = startDestination
             ) {
                 composable<Login> {
-                    LoginScreen(
+                    LoginScreenRoot(
                         onSignUpNavigate = { navController.navigateToSingleTop(Signup) },
                         onHomeNavigate = { navController.navigateToSingleTop(Home) }
                     )
                 }
                 composable<Signup> {
-                    SignupScreen(
+                    SignUpRoot(
                         onLogInNavigate = { navController.navigateToSingleTop(Login) }
                     )
                 }

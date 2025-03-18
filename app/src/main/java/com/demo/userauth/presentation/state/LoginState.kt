@@ -12,5 +12,5 @@ data class LoginState (
     val showPassword : Boolean = false,
 
     val isLoading : Boolean = false,
-    val loginResult : Resource<String>? = null
+    val loginResult : Resource<String>? = null,
 )
