@@ -17,9 +17,9 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = primaryColor,
-    secondary = secondaryColor,
-    tertiary = tertiaryColor
+    primary = onPrimary,
+    secondary = onSecondary,
+    tertiary = onTertiary
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -35,7 +35,6 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun UserAuthTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
