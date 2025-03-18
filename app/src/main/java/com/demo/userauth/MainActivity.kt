@@ -36,10 +36,7 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-           // val darkTheme = rememberSaveable { mutableStateOf(false) }
-           // darkTheme.value = isSystemInDarkTheme()
-
-            UserAuthTheme() {
+            UserAuthTheme {
                 AppNavigation()
             }
         }
