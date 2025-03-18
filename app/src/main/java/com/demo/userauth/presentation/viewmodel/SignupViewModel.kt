@@ -1,7 +1,6 @@
 package com.demo.userauth.presentation.viewmodel
 
 import android.util.Log
-import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -18,6 +17,7 @@ import com.demo.userauth.presentation.intent.SignupIntent.ToggleConfirmPasswordV
 import com.demo.userauth.presentation.intent.SignupIntent.TogglePasswordVisibility
 import com.demo.userauth.presentation.intent.SignupIntent.ToggleTnc
 import com.demo.userauth.presentation.state.SignupState
+import com.demo.userauth.repository.GoogleAuthUiClient
 import com.demo.userauth.repository.UserAuthRepo
 import com.demo.userauth.utils.Resource
 import com.demo.userauth.utils.isValidEmail
@@ -71,10 +71,12 @@ will automatically provide an instance of UserAuthRepo when creating SignupViewM
 * */
 
 @HiltViewModel
-class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo) : ViewModel() {
+class SignupViewModel @Inject constructor(val userAuthRepo: UserAuthRepo) : ViewModel() {
 
     private val _signUpState = MutableStateFlow(SignupState())
     val signUpState: StateFlow<SignupState> = _signUpState.asStateFlow()
+
+    lateinit var googleAuthUiClient: GoogleAuthUiClient
 
     val coroutineExceptionHandler: CoroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
@@ -107,7 +109,9 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
                     it.copy(
                         password = signupIntent.password,
                         passwordError = (signupIntent.password.isValidPassword()),
-                        passwordMismatchError = signupIntent.password.matchesPassword(confirmPassword),
+                        passwordMismatchError = signupIntent.password.matchesPassword(
+                            confirmPassword
+                        ),
                     )
                 }
             }
@@ -118,7 +122,9 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
                     it.copy(
                         confirmPassword = signupIntent.confirmPassword,
                         confPasswordError = signupIntent.confirmPassword.isValidPassword(),
-                        passwordMismatchError = signupIntent.confirmPassword.matchesPassword(password)
+                        passwordMismatchError = signupIntent.confirmPassword.matchesPassword(
+                            password
+                        )
                     )
                 }
             }
@@ -155,7 +161,18 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
             is Submit -> {
                 registerUser()
             }
+        }
+    }
 
+    fun userCredentialManagerRegister() {
+        getState { it.copy(isLoading = true) }
+
+        viewModelScope.launch(coroutineExceptionHandler) {
+           val result = googleAuthUiClient.userCredentialManagerRegister(
+                _signUpState.value.emailId,
+                _signUpState.value.password
+            )
+            getState { it.copy(isLoading = false, credentialSignupResult = result) }
         }
     }
 
@@ -164,7 +181,7 @@ class SignupViewModel @Inject constructor(private val userAuthRepo: UserAuthRepo
 
             getState { it.copy(isLoading = true) }
             if (validateInput()) {
-                userAuthRepo.userRegister(
+                userAuthRepo.userDatabaseRegister(
                     UserEntity(
                         emailId = _signUpState.value.emailId,
                         phoneNumber = _signUpState.value.phoneNumber,

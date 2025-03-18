@@ -26,7 +26,7 @@ import javax.inject.Inject
 
 class UserAuthRepo @Inject constructor(private var userDao: UserDao) {
     // Registration
-    fun userRegister(userEntity: UserEntity): Flow<Resource<String>> = flow {
+    fun userDatabaseRegister(userEntity: UserEntity): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
         val existingUser =
             userDao.getUserByEmailOrPhone(userEntity.emailId, userEntity.phoneNumber)
@@ -43,7 +43,7 @@ class UserAuthRepo @Inject constructor(private var userDao: UserDao) {
     }.flowOn(Dispatchers.IO)
 
     // Login
-    fun userLogin(emailId: String, password: String): Flow<Resource<String>> = flow {
+    fun userDatabaseLogin(emailId: String, password: String): Flow<Resource<String>> = flow {
 
         emit(Resource.Loading())
 

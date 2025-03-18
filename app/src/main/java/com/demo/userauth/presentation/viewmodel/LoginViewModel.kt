@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val userAuthRepo: UserAuthRepo,
+    val userAuthRepo: UserAuthRepo,
     private val userPreferences: UserPreferences,
 ) : ViewModel() {
 
@@ -93,7 +93,16 @@ class LoginViewModel @Inject constructor(
         getState { it.copy(isLoading = true) }
 
         viewModelScope.launch(coroutineExceptionHandler) {
-            val result = googleAuthUiClient.signIn()
+            val result = googleAuthUiClient.googleSignIn()
+            getState { it.copy(isLoading = false, loginResult = result) }
+        }
+    }
+
+    fun userCredentialManagerLogin() {
+        getState { it.copy(isLoading = true) }
+
+        viewModelScope.launch(coroutineExceptionHandler) {
+            val result = googleAuthUiClient.userCredentialManagerLogin()
             getState { it.copy(isLoading = false, loginResult = result) }
         }
     }
@@ -103,7 +112,7 @@ class LoginViewModel @Inject constructor(
             getState { it.copy(isLoading = true) }
 
             if (isValidateInput()) {
-                userAuthRepo.userLogin(_loginState.value.emailId, _loginState.value.password)
+                userAuthRepo.userDatabaseLogin(_loginState.value.emailId, _loginState.value.password)
                     .catch { e ->
                         getState {
                             it.copy(
@@ -119,5 +128,9 @@ class LoginViewModel @Inject constructor(
                 getState { it.copy(isLoading = false) }
             }
         }
+    }
+
+    fun clearSignInResult() {
+        getState { it.copy(loginResult = null) }
     }
 }

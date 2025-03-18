@@ -18,4 +18,9 @@ interface UserDao {
     @Query("SELECT * FROM user WHERE emailId = :emailId OR phoneNumber = :phoneNumber LIMIT 1")
     suspend fun getUserByEmailOrPhone(emailId: String, phoneNumber: String) : UserEntity?
 
+    @Query("DELETE FROM user")
+    suspend fun deleteAllUsers()
+
+    @Query("SELECT * FROM user")
+    suspend fun getAllUsers(): List<UserEntity>
 }
