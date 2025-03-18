@@ -1,6 +1,7 @@
 package com.demo.userauth.presentation.screen
 
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.Email
@@ -21,12 +23,15 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -49,8 +54,8 @@ import com.demo.userauth.presentation.intent.SignupIntent.EnterPhoneNumber
 import com.demo.userauth.presentation.intent.SignupIntent.Submit
 import com.demo.userauth.presentation.theme.primaryColor
 import com.demo.userauth.presentation.viewmodel.SignupViewModel
+import com.demo.userauth.repository.GoogleAuthUiClient
 import com.demo.userauth.utils.Resource
-import java.time.format.TextStyle
 
 @Composable
 fun SignupScreen(
@@ -61,8 +66,29 @@ fun SignupScreen(
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
 
+    signupViewModel.googleAuthUiClient = remember {
+        GoogleAuthUiClient(context as ComponentActivity, signupViewModel.userAuthRepo)
+    }
+
     LaunchedEffect(signupState.value.signupResult) {
         signupState.value.signupResult.let { result ->
+            when (result) {
+                is Resource.Success -> {
+                    signupViewModel.userCredentialManagerRegister()
+                }
+
+                is Resource.Error -> {
+                    Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+                    signupViewModel.clearSignupResult()
+                }
+
+                else -> {}// do nothing
+            }
+        }
+    }
+
+    LaunchedEffect(signupState.value.credentialSignupResult) {
+        signupState.value.credentialSignupResult.let { result ->
             when (result) {
                 is Resource.Success -> {
                     Toast.makeText(context, result.data, Toast.LENGTH_SHORT).show()
@@ -107,7 +133,11 @@ fun SignupScreen(
                 .padding(all = 5.dp),
             singleLine = true,
             isError = signupState.value.fullNameError,
-            keyboardType = KeyboardType.Text,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,  // Capitalize first letter
+                keyboardType = KeyboardType.Text,  // Normal text input
+                imeAction = ImeAction.Next  // Move to next field
+            ),
             placeholder = R.string.full_name_placeholder,
             leadingIcon = Icons.Filled.Person,
             contentDescription = R.string.full_name_placeholder,
@@ -122,7 +152,10 @@ fun SignupScreen(
                 .padding(all = 5.dp),
             singleLine = true,
             isError = signupState.value.emailIdError,
-            keyboardType = KeyboardType.Email,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,  // Normal text input
+                imeAction = ImeAction.Next  // Move to next field
+            ),
             placeholder = R.string.email_id_placeholder,
             leadingIcon = Icons.Filled.Email,
             contentDescription = R.string.email_id_placeholder,
@@ -137,7 +170,10 @@ fun SignupScreen(
                 .padding(all = 5.dp),
             singleLine = true,
             isError = signupState.value.passwordError || signupState.value.passwordMismatchError,
-            keyboardType = KeyboardType.Password,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,  // Normal text input
+                imeAction = ImeAction.Next  // Move to next field
+            ),
             placeholder = R.string.password_placeholder,
             leadingIcon = Icons.Filled.Lock,
             trailingIcon = if (signupState.value.showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
@@ -162,7 +198,10 @@ fun SignupScreen(
                 .padding(all = 5.dp),
             singleLine = true,
             isError = signupState.value.confPasswordError || signupState.value.passwordMismatchError,
-            keyboardType = KeyboardType.Password,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,  // Normal text input
+                imeAction = ImeAction.Next  // Move to next field
+            ),
             placeholder = R.string.conf_password_placeholder,
             leadingIcon = Icons.Filled.Lock,
             trailingIcon = if (signupState.value.showConfirmPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
@@ -187,7 +226,10 @@ fun SignupScreen(
                 .padding(all = 5.dp),
             singleLine = true,
             isError = signupState.value.phoneNumberError,
-            keyboardType = KeyboardType.Number,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,  // Normal text input
+                imeAction = ImeAction.Done  // Move to next field
+            ),
             placeholder = R.string.phone_number_placeholder,
             leadingIcon = Icons.Filled.MobileFriendly,
             contentDescription = R.string.phone_number_placeholder,

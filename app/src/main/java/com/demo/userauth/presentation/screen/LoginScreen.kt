@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -56,25 +58,36 @@ fun LoginScreen(
     loginViewModel: LoginViewModel = hiltViewModel(),
     onSignUpNavigate: () -> Unit,
     onHomeNavigate: () -> Unit,
-    ) {
+) {
     val loginState = loginViewModel.loginState.collectAsState()
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current  // Get focus manager
+
     loginViewModel.googleAuthUiClient = remember {
-        GoogleAuthUiClient(context as ComponentActivity)
+        GoogleAuthUiClient(context as ComponentActivity, loginViewModel.userAuthRepo)
+    }
+
+    LaunchedEffect(key1 = true) {
+        loginViewModel.userCredentialManagerLogin()
     }
 
     LaunchedEffect(loginState.value.loginResult) {
+
         loginState.value.loginResult.let { result ->
+
             when (result) {
                 is Resource.Success -> {
                     Toast.makeText(context, result.data, Toast.LENGTH_SHORT).show()
                     loginViewModel.saveLoginStatus(true)
+                    loginViewModel.clearSignInResult()
+
                     onHomeNavigate()
                 }
 
                 is Resource.Error -> {
                     Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+                    loginViewModel.clearSignInResult()
+
                 }
 
                 else -> {} // do nothing
@@ -107,7 +120,10 @@ fun LoginScreen(
                 .padding(all = 5.dp),
             singleLine = true,
             isError = loginState.value.emailIdError,
-            keyboardType = KeyboardType.Email,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,  // Normal text input
+                imeAction = ImeAction.Next  // Move to next field
+            ),
             placeholder = R.string.email_id_placeholder,
             leadingIcon = Icons.Filled.Email,
             contentDescription = R.string.email_id_placeholder,
@@ -122,7 +138,10 @@ fun LoginScreen(
                 .padding(all = 5.dp),
             singleLine = true,
             isError = loginState.value.passwordError,
-            keyboardType = KeyboardType.Password,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,  // Normal text input
+                imeAction = ImeAction.Done  // Move to next field
+            ),
             placeholder = R.string.password_placeholder,
             leadingIcon = Icons.Filled.Lock,
             trailingIcon = if (loginState.value.showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
@@ -146,7 +165,7 @@ fun LoginScreen(
             buttonContent = stringResource(R.string.sign_in)
         )
         Divider()
-        GoogleSignInButton (onClick = { loginViewModel.handleIntent(GoogleLogin) })
+        GoogleSignInButton(onClick = { loginViewModel.handleIntent(GoogleLogin) })
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -159,7 +178,9 @@ fun LoginScreen(
                 text = R.string.sign_up,
                 modifier = Modifier
                     .padding(start = 10.dp)
-                    .clickable { onSignUpNavigate() },
+                    .clickable {
+                        onSignUpNavigate()
+                    },
                 fontSize = 16.sp,
                 color = primaryColor,
                 fontWeight = FontWeight.Bold
