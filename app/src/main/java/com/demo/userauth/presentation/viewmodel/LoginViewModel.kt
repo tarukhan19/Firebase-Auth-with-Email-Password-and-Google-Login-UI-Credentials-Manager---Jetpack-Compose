@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -33,6 +34,7 @@ class LoginViewModel @Inject constructor(
 
     private val _loginState = MutableStateFlow(LoginState())
     val loginState: StateFlow<LoginState> = _loginState.asStateFlow()
+
     lateinit var googleAuthUiClient: GoogleAuthUiClient
 
     val coroutineExceptionHandler: CoroutineExceptionHandler =
@@ -81,7 +83,9 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun getState(update: (LoginState) -> LoginState) {
-        _loginState.value = update(_loginState.value)
+        _loginState.update {
+            update(_loginState.value)
+        }
     }
 
     fun isValidateInput(): Boolean {

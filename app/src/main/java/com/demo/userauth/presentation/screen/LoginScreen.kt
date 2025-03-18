@@ -32,9 +32,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.demo.userauth.R
+import com.demo.userauth.presentation.actions.LoginAction
 import com.demo.userauth.presentation.components.CircularProgressBar
 import com.demo.userauth.presentation.components.CustomButton
 import com.demo.userauth.presentation.components.CustomImage
@@ -48,33 +50,35 @@ import com.demo.userauth.presentation.intent.LoginIntent.EnterPassword
 import com.demo.userauth.presentation.intent.LoginIntent.GoogleLogin
 import com.demo.userauth.presentation.intent.LoginIntent.Submit
 import com.demo.userauth.presentation.intent.LoginIntent.TogglePasswordVisibility
+import com.demo.userauth.presentation.state.LoginState
 import com.demo.userauth.presentation.theme.primaryColor
 import com.demo.userauth.presentation.viewmodel.LoginViewModel
 import com.demo.userauth.repository.GoogleAuthUiClient
 import com.demo.userauth.utils.Resource
+import kotlin.math.log
 
 @Composable
-fun LoginScreen(
+fun LoginScreenRoot(
     loginViewModel: LoginViewModel = hiltViewModel(),
     onSignUpNavigate: () -> Unit,
     onHomeNavigate: () -> Unit,
 ) {
     val loginState = loginViewModel.loginState.collectAsState()
     val context = LocalContext.current
-    val focusManager = LocalFocusManager.current  // Get focus manager
 
+    // Set up GoogleAuthUiClient
     loginViewModel.googleAuthUiClient = remember {
         GoogleAuthUiClient(context as ComponentActivity, loginViewModel.userAuthRepo)
     }
 
-    LaunchedEffect(key1 = true) {
+    // Auto-login using Credential Manager
+    LaunchedEffect(Unit) {
         loginViewModel.userCredentialManagerLogin()
     }
 
     LaunchedEffect(loginState.value.loginResult) {
 
         loginState.value.loginResult.let { result ->
-
             when (result) {
                 is Resource.Success -> {
                     Toast.makeText(context, result.data, Toast.LENGTH_SHORT).show()
@@ -83,17 +87,38 @@ fun LoginScreen(
 
                     onHomeNavigate()
                 }
-
                 is Resource.Error -> {
                     Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
                     loginViewModel.clearSignInResult()
 
                 }
-
                 else -> {} // do nothing
             }
         }
     }
+
+    val loginAction = LoginAction (
+        onEmailChange = { loginViewModel.handleIntent(EnterEmail(it)) },
+        onPasswordChange = { loginViewModel.handleIntent(EnterPassword(it)) },
+        onTogglePasswordVisibility = { loginViewModel.handleIntent(TogglePasswordVisibility) },
+        onSubmit = { loginViewModel.handleIntent(Submit) },
+        onGoogleLogin = { loginViewModel.handleIntent(GoogleLogin) },
+        onSignUpNavigate = onSignUpNavigate,
+        isButtonEnabled = loginViewModel.isValidateInput()
+    )
+    LoginScreen(
+        loginState = loginState.value,
+        loginAction = loginAction
+    )
+}
+
+@Composable
+fun LoginScreen(
+    loginState: LoginState,
+    loginAction: LoginAction
+) {
+
+    val focusManager = LocalFocusManager.current  // Get focus manager
 
     ScaffoldUi(showToolBar = false) {
         Spacer(modifier = Modifier.padding(top = 20.dp))
@@ -112,14 +137,14 @@ fun LoginScreen(
         }
         Spacer(modifier = Modifier.padding(top = 40.dp))
         CustomTextFieldForm(
-            value = loginState.value.emailId,
-            onValueChange = { loginViewModel.handleIntent(EnterEmail(it)) },
+            value = loginState.emailId,
+            onValueChange = { loginAction.onEmailChange(it) },
             label = R.string.email_id,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(all = 5.dp),
             singleLine = true,
-            isError = loginState.value.emailIdError,
+            isError = loginState.emailIdError,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,  // Normal text input
                 imeAction = ImeAction.Next  // Move to next field
@@ -130,25 +155,25 @@ fun LoginScreen(
         )
 
         CustomTextFieldForm(
-            value = loginState.value.password,
-            onValueChange = { loginViewModel.handleIntent(EnterPassword(it)) },
+            value = loginState.password,
+            onValueChange = { loginAction.onPasswordChange(it) },
             label = R.string.password,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(all = 5.dp),
             singleLine = true,
-            isError = loginState.value.passwordError,
+            isError = loginState.passwordError,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,  // Normal text input
                 imeAction = ImeAction.Done  // Move to next field
             ),
             placeholder = R.string.password_placeholder,
             leadingIcon = Icons.Filled.Lock,
-            trailingIcon = if (loginState.value.showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+            trailingIcon = if (loginState.showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
             contentDescription = R.string.password_placeholder,
-            leadingContentDescription = if (loginState.value.showPassword) R.string.show_password else R.string.hide_password,
-            onTrailingIconClicked = { loginViewModel.handleIntent(TogglePasswordVisibility) },
-            visualTransformation = if (loginState.value.showPassword) {
+            leadingContentDescription = if (loginState.showPassword) R.string.show_password else R.string.hide_password,
+            onTrailingIconClicked = { loginAction.onTogglePasswordVisibility() },
+            visualTransformation = if (loginState.showPassword) {
                 VisualTransformation.None
             } else {
                 PasswordVisualTransformation()
@@ -156,16 +181,16 @@ fun LoginScreen(
         )
 
         CustomButton(
-            isButtonEnabled = loginViewModel.isValidateInput(),
+            isButtonEnabled = loginAction.isButtonEnabled,
             onClick = {
                 focusManager.clearFocus()  // Hide keyboard
-                loginViewModel.handleIntent(Submit)
+                loginAction.onSubmit()
             },
             icon = Icons.Filled.CheckCircleOutline,
             buttonContent = stringResource(R.string.sign_in)
         )
         Divider()
-        GoogleSignInButton(onClick = { loginViewModel.handleIntent(GoogleLogin) })
+        GoogleSignInButton(onClick = { loginAction.onGoogleLogin() })
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -179,7 +204,7 @@ fun LoginScreen(
                 modifier = Modifier
                     .padding(start = 10.dp)
                     .clickable {
-                        onSignUpNavigate()
+                        loginAction.onSignUpNavigate()
                     },
                 fontSize = 16.sp,
                 color = primaryColor,
@@ -188,7 +213,16 @@ fun LoginScreen(
         }
     }
 
-    if (loginState.value.isLoading) {
+    if (loginState.isLoading) {
         CircularProgressBar()
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewLoginScreen() {
+    LoginScreen(
+        loginState = LoginState(),
+        loginAction = LoginAction(),
+    )
 }

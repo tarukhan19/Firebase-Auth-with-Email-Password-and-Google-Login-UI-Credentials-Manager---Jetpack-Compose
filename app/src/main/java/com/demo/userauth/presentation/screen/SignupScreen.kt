@@ -35,10 +35,13 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.demo.userauth.R
+import com.demo.userauth.presentation.actions.LoginAction
+import com.demo.userauth.presentation.actions.SignupAction
 import com.demo.userauth.presentation.components.CircularProgressBar
 import com.demo.userauth.presentation.components.CustomButton
 import com.demo.userauth.presentation.components.CustomImage
@@ -52,19 +55,22 @@ import com.demo.userauth.presentation.intent.SignupIntent.EnterFullName
 import com.demo.userauth.presentation.intent.SignupIntent.EnterPassword
 import com.demo.userauth.presentation.intent.SignupIntent.EnterPhoneNumber
 import com.demo.userauth.presentation.intent.SignupIntent.Submit
+import com.demo.userauth.presentation.intent.SignupIntent.TogglePasswordVisibility
+import com.demo.userauth.presentation.intent.SignupIntent.ToggleTnc
+import com.demo.userauth.presentation.state.LoginState
+import com.demo.userauth.presentation.state.SignupState
 import com.demo.userauth.presentation.theme.primaryColor
 import com.demo.userauth.presentation.viewmodel.SignupViewModel
 import com.demo.userauth.repository.GoogleAuthUiClient
 import com.demo.userauth.utils.Resource
 
 @Composable
-fun SignupScreen(
+fun SignUpRoot(
     signupViewModel: SignupViewModel = hiltViewModel(),
     onLogInNavigate: () -> Unit
 ) {
     val signupState = signupViewModel.signUpState.collectAsState()
     val context = LocalContext.current
-    val focusManager = LocalFocusManager.current
 
     signupViewModel.googleAuthUiClient = remember {
         GoogleAuthUiClient(context as ComponentActivity, signupViewModel.userAuthRepo)
@@ -105,6 +111,33 @@ fun SignupScreen(
         }
     }
 
+    val signupAction = SignupAction(
+        onFullNameChange = { signupViewModel.handleIntent(EnterFullName(it)) },
+        onEmailChange = { signupViewModel.handleIntent(EnterEmail(it)) },
+        onPasswordChange = { signupViewModel.handleIntent(EnterPassword(it)) },
+        onConfPasswordChange = { signupViewModel.handleIntent(EnterConfirmPassword(it)) },
+        onTogglePasswordVisibility = { signupViewModel.handleIntent(TogglePasswordVisibility) },
+        onToggleConfPasswordVisibility = { signupViewModel.handleIntent(SignupIntent.ToggleConfirmPasswordVisibility) },
+        onMobileNoChange = { signupViewModel.handleIntent(EnterPhoneNumber(it)) },
+        onSubmit = { signupViewModel.handleIntent(Submit) },
+        onTncCheck = { signupViewModel.handleIntent(ToggleTnc)} ,
+        onSignInNavigate = onLogInNavigate,
+        isButtonEnabled = signupViewModel.validateInput(),
+    )
+
+    SignupScreen(
+        signupState = signupState.value,
+        signupAction = signupAction
+    )
+}
+
+@Composable
+fun SignupScreen(
+    signupAction: SignupAction,
+    signupState : SignupState
+) {
+
+    val focusManager = LocalFocusManager.current
     ScaffoldUi(showToolBar = false) {
         Spacer(modifier = Modifier.padding(top = 20.dp))
 
@@ -125,14 +158,14 @@ fun SignupScreen(
         Spacer(modifier = Modifier.padding(top = 10.dp))
 
         CustomTextFieldForm(
-            value = signupState.value.fullName,
-            onValueChange = { signupViewModel.handleIntent(EnterFullName(it)) },
+            value = signupState.fullName,
+            onValueChange = { signupAction.onFullNameChange(it) },
             label = R.string.full_name,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(all = 5.dp),
             singleLine = true,
-            isError = signupState.value.fullNameError,
+            isError = signupState.fullNameError,
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Sentences,  // Capitalize first letter
                 keyboardType = KeyboardType.Text,  // Normal text input
@@ -144,14 +177,14 @@ fun SignupScreen(
         )
 
         CustomTextFieldForm(
-            value = signupState.value.emailId,
-            onValueChange = { signupViewModel.handleIntent(EnterEmail(it)) },
+            value = signupState.emailId,
+            onValueChange = { signupAction.onEmailChange(it) },
             label = R.string.email_id,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(all = 5.dp),
             singleLine = true,
-            isError = signupState.value.emailIdError,
+            isError = signupState.emailIdError,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,  // Normal text input
                 imeAction = ImeAction.Next  // Move to next field
@@ -162,27 +195,27 @@ fun SignupScreen(
         )
 
         CustomTextFieldForm(
-            value = signupState.value.password,
-            onValueChange = { signupViewModel.handleIntent(EnterPassword(it)) },
+            value = signupState.password,
+            onValueChange = { signupAction.onPasswordChange(it) },
             label = R.string.password,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(all = 5.dp),
             singleLine = true,
-            isError = signupState.value.passwordError || signupState.value.passwordMismatchError,
+            isError = signupState.passwordError || signupState.passwordMismatchError,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,  // Normal text input
                 imeAction = ImeAction.Next  // Move to next field
             ),
             placeholder = R.string.password_placeholder,
             leadingIcon = Icons.Filled.Lock,
-            trailingIcon = if (signupState.value.showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+            trailingIcon = if (signupState.showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
             contentDescription = R.string.password_placeholder,
-            leadingContentDescription = if (signupState.value.showPassword) R.string.show_password else R.string.hide_password,
+            leadingContentDescription = if (signupState.showPassword) R.string.show_password else R.string.hide_password,
             onTrailingIconClicked = {
-                signupViewModel.handleIntent(SignupIntent.TogglePasswordVisibility)
+                signupAction.onTogglePasswordVisibility()
             },
-            visualTransformation = if (signupState.value.showPassword) {
+            visualTransformation = if (signupState.showPassword) {
                 VisualTransformation.None
             } else {
                 PasswordVisualTransformation()
@@ -190,27 +223,25 @@ fun SignupScreen(
         )
 
         CustomTextFieldForm(
-            value = signupState.value.confirmPassword,
-            onValueChange = { signupViewModel.handleIntent(EnterConfirmPassword(it)) },
+            value = signupState.confirmPassword,
+            onValueChange = { signupAction.onConfPasswordChange(it) },
             label = R.string.confirm_password,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(all = 5.dp),
             singleLine = true,
-            isError = signupState.value.confPasswordError || signupState.value.passwordMismatchError,
+            isError = signupState.confPasswordError || signupState.passwordMismatchError,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,  // Normal text input
                 imeAction = ImeAction.Next  // Move to next field
             ),
             placeholder = R.string.conf_password_placeholder,
             leadingIcon = Icons.Filled.Lock,
-            trailingIcon = if (signupState.value.showConfirmPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+            trailingIcon = if (signupState.showConfirmPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
             contentDescription = R.string.password_placeholder,
-            leadingContentDescription = if (signupState.value.showConfirmPassword) R.string.show_password else R.string.hide_password,
-            onTrailingIconClicked = {
-                signupViewModel.handleIntent(SignupIntent.ToggleConfirmPasswordVisibility)
-            },
-            visualTransformation = if (signupState.value.showConfirmPassword) {
+            leadingContentDescription = if (signupState.showConfirmPassword) R.string.show_password else R.string.hide_password,
+            onTrailingIconClicked = { signupAction.onToggleConfPasswordVisibility() },
+            visualTransformation = if (signupState.showConfirmPassword) {
                 VisualTransformation.None
             } else {
                 PasswordVisualTransformation()
@@ -218,14 +249,14 @@ fun SignupScreen(
         )
 
         CustomTextFieldForm(
-            value = signupState.value.phoneNumber,
-            onValueChange = { signupViewModel.handleIntent(EnterPhoneNumber(it)) },
+            value = signupState.phoneNumber,
+            onValueChange = { signupAction.onMobileNoChange(it) },
             label = R.string.phone_number,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(all = 5.dp),
             singleLine = true,
-            isError = signupState.value.phoneNumberError,
+            isError = signupState.phoneNumberError,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number,  // Normal text input
                 imeAction = ImeAction.Done  // Move to next field
@@ -242,17 +273,17 @@ fun SignupScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(
-                checked = signupState.value.isTncAccepted,
-                onCheckedChange = { signupViewModel.handleIntent(SignupIntent.ToggleTnc) }
+                checked = signupState.isTncAccepted,
+                onCheckedChange = { signupAction.onTncCheck(it) }
             )
             CustomTextForm(text = R.string.tnc_text)
         }
 
         CustomButton(
-            isButtonEnabled = signupViewModel.validateInput(),
+            isButtonEnabled = signupAction.isButtonEnabled,
             onClick = {
                 focusManager.clearFocus()
-                signupViewModel.handleIntent(Submit)
+                signupAction.onSubmit()
             },
             icon = Icons.Filled.CheckCircleOutline,
             buttonContent = stringResource(R.string.sign_up)
@@ -271,7 +302,7 @@ fun SignupScreen(
                 text = R.string.sign_in,
                 modifier = Modifier
                     .padding(start = 10.dp)
-                    .clickable { onLogInNavigate() },
+                    .clickable { signupAction.onSignInNavigate() },
                 fontSize = 16.sp,
                 color = primaryColor,
                 fontWeight = FontWeight.Bold
@@ -279,7 +310,16 @@ fun SignupScreen(
         }
     }
 
-    if (signupState.value.isLoading) {
+    if (signupState.isLoading) {
         CircularProgressBar()
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewSignupScreen() {
+    SignupScreen(
+        signupState = SignupState(),
+        signupAction = SignupAction(),
+    )
 }
