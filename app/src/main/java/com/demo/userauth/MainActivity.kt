@@ -5,11 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -20,10 +17,8 @@ import com.demo.userauth.presentation.navigation.ScreenRoute.Signup
 import com.demo.userauth.presentation.navigation.ScreenRoute
 import com.demo.userauth.presentation.navigation.ScreenRoute.Home
 import com.demo.userauth.presentation.screen.HomeScreen
-import com.demo.userauth.presentation.screen.LoginScreen
 import com.demo.userauth.presentation.screen.LoginScreenRoot
 import com.demo.userauth.presentation.screen.SignUpRoot
-import com.demo.userauth.presentation.screen.SignupScreen
 import com.demo.userauth.presentation.theme.UserAuthTheme
 import com.demo.userauth.presentation.viewmodel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
