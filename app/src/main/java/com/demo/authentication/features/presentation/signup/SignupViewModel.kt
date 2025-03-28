@@ -14,15 +14,15 @@ import com.demo.authentication.core.presentation.utils.isValidPassword
 import com.demo.authentication.core.presentation.utils.isValidPhoneNumber
 import com.demo.authentication.core.presentation.utils.matchesPassword
 import com.demo.authentication.features.data.local.entity.UserEntity
-import com.demo.authentication.features.presentation.signup.SignupIntent.EnterConfirmPassword
-import com.demo.authentication.features.presentation.signup.SignupIntent.EnterEmail
-import com.demo.authentication.features.presentation.signup.SignupIntent.EnterFullName
-import com.demo.authentication.features.presentation.signup.SignupIntent.EnterPassword
-import com.demo.authentication.features.presentation.signup.SignupIntent.EnterPhoneNumber
-import com.demo.authentication.features.presentation.signup.SignupIntent.Submit
-import com.demo.authentication.features.presentation.signup.SignupIntent.ToggleConfirmPasswordVisibility
-import com.demo.authentication.features.presentation.signup.SignupIntent.TogglePasswordVisibility
-import com.demo.authentication.features.presentation.signup.SignupIntent.ToggleTnc
+import com.demo.authentication.features.presentation.signup.SignupEvent.EnterConfirmPassword
+import com.demo.authentication.features.presentation.signup.SignupEvent.EnterEmail
+import com.demo.authentication.features.presentation.signup.SignupEvent.EnterFullName
+import com.demo.authentication.features.presentation.signup.SignupEvent.EnterPassword
+import com.demo.authentication.features.presentation.signup.SignupEvent.EnterPhoneNumber
+import com.demo.authentication.features.presentation.signup.SignupEvent.Submit
+import com.demo.authentication.features.presentation.signup.SignupEvent.ToggleConfirmPasswordVisibility
+import com.demo.authentication.features.presentation.signup.SignupEvent.TogglePasswordVisibility
+import com.demo.authentication.features.presentation.signup.SignupEvent.ToggleTnc
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -82,7 +82,7 @@ class SignupViewModel @Inject constructor(val userAuthRepo: UserAuthRepo) : View
             Log.e("CoroutineError", "Exception caught: ${throwable.localizedMessage}")
         }
 
-    fun handleIntent(signupIntent: SignupIntent) {
+    fun handleIntent(signupIntent: SignupEvent) {
         when (signupIntent) {
             is EnterFullName -> {
                 getState {

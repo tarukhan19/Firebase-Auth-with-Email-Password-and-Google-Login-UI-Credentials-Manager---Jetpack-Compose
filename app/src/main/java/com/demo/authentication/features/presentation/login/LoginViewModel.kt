@@ -11,11 +11,11 @@ import com.demo.authentication.core.domain.utils.Resource
 import com.demo.authentication.core.presentation.utils.isValidEmail
 import com.demo.authentication.core.presentation.utils.isValidPassword
 import com.demo.authentication.features.data.datastore.UserPreferences
-import com.demo.authentication.features.presentation.login.LoginIntent.EnterEmail
-import com.demo.authentication.features.presentation.login.LoginIntent.EnterPassword
-import com.demo.authentication.features.presentation.login.LoginIntent.GoogleLogin
-import com.demo.authentication.features.presentation.login.LoginIntent.Submit
-import com.demo.authentication.features.presentation.login.LoginIntent.TogglePasswordVisibility
+import com.demo.authentication.features.presentation.login.LoginEvent.EnterEmail
+import com.demo.authentication.features.presentation.login.LoginEvent.EnterPassword
+import com.demo.authentication.features.presentation.login.LoginEvent.GoogleLogin
+import com.demo.authentication.features.presentation.login.LoginEvent.Submit
+import com.demo.authentication.features.presentation.login.LoginEvent.TogglePasswordVisibility
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,7 +44,7 @@ class LoginViewModel @Inject constructor(
         userPreferences.saveLoginStatus(loginStatus)
     }
 
-    fun handleIntent(loginIntent: LoginIntent) {
+    fun handleIntent(loginIntent: LoginEvent) {
         when (loginIntent) {
             is EnterEmail -> {
                 getState {

@@ -47,11 +47,11 @@ import com.demo.authentication.features.presentation.components.CustomTextForm
 import com.demo.authentication.features.presentation.components.Divider
 import com.demo.authentication.features.presentation.components.GoogleSignInButton
 import com.demo.authentication.features.presentation.components.ScaffoldUi
-import com.demo.authentication.features.presentation.login.LoginIntent.EnterEmail
-import com.demo.authentication.features.presentation.login.LoginIntent.EnterPassword
-import com.demo.authentication.features.presentation.login.LoginIntent.GoogleLogin
-import com.demo.authentication.features.presentation.login.LoginIntent.Submit
-import com.demo.authentication.features.presentation.login.LoginIntent.TogglePasswordVisibility
+import com.demo.authentication.features.presentation.login.LoginEvent.EnterEmail
+import com.demo.authentication.features.presentation.login.LoginEvent.EnterPassword
+import com.demo.authentication.features.presentation.login.LoginEvent.GoogleLogin
+import com.demo.authentication.features.presentation.login.LoginEvent.Submit
+import com.demo.authentication.features.presentation.login.LoginEvent.TogglePasswordVisibility
 
 @Composable
 fun LoginScreenRoot(

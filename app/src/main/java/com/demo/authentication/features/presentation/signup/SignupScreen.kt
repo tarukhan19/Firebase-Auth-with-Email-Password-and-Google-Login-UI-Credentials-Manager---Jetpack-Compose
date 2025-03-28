@@ -49,14 +49,14 @@ import com.demo.authentication.features.presentation.components.CustomImage
 import com.demo.authentication.features.presentation.components.CustomTextFieldForm
 import com.demo.authentication.features.presentation.components.CustomTextForm
 import com.demo.authentication.features.presentation.components.ScaffoldUi
-import com.demo.authentication.features.presentation.signup.SignupIntent.EnterConfirmPassword
-import com.demo.authentication.features.presentation.signup.SignupIntent.EnterEmail
-import com.demo.authentication.features.presentation.signup.SignupIntent.EnterFullName
-import com.demo.authentication.features.presentation.signup.SignupIntent.EnterPassword
-import com.demo.authentication.features.presentation.signup.SignupIntent.EnterPhoneNumber
-import com.demo.authentication.features.presentation.signup.SignupIntent.Submit
-import com.demo.authentication.features.presentation.signup.SignupIntent.TogglePasswordVisibility
-import com.demo.authentication.features.presentation.signup.SignupIntent.ToggleTnc
+import com.demo.authentication.features.presentation.signup.SignupEvent.EnterConfirmPassword
+import com.demo.authentication.features.presentation.signup.SignupEvent.EnterEmail
+import com.demo.authentication.features.presentation.signup.SignupEvent.EnterFullName
+import com.demo.authentication.features.presentation.signup.SignupEvent.EnterPassword
+import com.demo.authentication.features.presentation.signup.SignupEvent.EnterPhoneNumber
+import com.demo.authentication.features.presentation.signup.SignupEvent.Submit
+import com.demo.authentication.features.presentation.signup.SignupEvent.TogglePasswordVisibility
+import com.demo.authentication.features.presentation.signup.SignupEvent.ToggleTnc
 
 @Composable
 fun SignUpRoot(
@@ -111,7 +111,7 @@ fun SignUpRoot(
         onPasswordChange = { signupViewModel.handleIntent(EnterPassword(it)) },
         onConfPasswordChange = { signupViewModel.handleIntent(EnterConfirmPassword(it)) },
         onTogglePasswordVisibility = { signupViewModel.handleIntent(TogglePasswordVisibility) },
-        onToggleConfPasswordVisibility = { signupViewModel.handleIntent(SignupIntent.ToggleConfirmPasswordVisibility) },
+        onToggleConfPasswordVisibility = { signupViewModel.handleIntent(SignupEvent.ToggleConfirmPasswordVisibility) },
         onMobileNoChange = { signupViewModel.handleIntent(EnterPhoneNumber(it)) },
         onSubmit = { signupViewModel.handleIntent(Submit) },
         onTncCheck = { signupViewModel.handleIntent(ToggleTnc)} ,
