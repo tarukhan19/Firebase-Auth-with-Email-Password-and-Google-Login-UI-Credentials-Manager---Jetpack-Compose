@@ -37,8 +37,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.demo.authentication.R
-import com.demo.authentication.features.data.repository.GoogleAuthUiClient
 import com.demo.authentication.core.domain.utils.Resource
+import com.demo.authentication.features.data.repository.GoogleAuthUiClientImpl
 import com.demo.authentication.features.presentation.components.CircularProgressBar
 import com.demo.authentication.features.presentation.components.CustomButton
 import com.demo.authentication.features.presentation.components.CustomImage
@@ -53,6 +53,13 @@ import com.demo.authentication.features.presentation.login.LoginEvent.GoogleLogi
 import com.demo.authentication.features.presentation.login.LoginEvent.Submit
 import com.demo.authentication.features.presentation.login.LoginEvent.TogglePasswordVisibility
 
+/*
+If we are passing , hiltViewModel in login screen, preview don't work
+so that' why we split it into two parts LoginScreenRoot and LoginScreen
+
+in LoginScreenRoot -> we implement login viewmodel,event, action and state
+in login screen we design the ui
+ */
 @Composable
 fun LoginScreenRoot(
     loginViewModel: LoginViewModel = hiltViewModel(),
@@ -64,7 +71,7 @@ fun LoginScreenRoot(
 
     // Set up GoogleAuthUiClient
     loginViewModel.googleAuthUiClient = remember {
-        GoogleAuthUiClient(context as ComponentActivity, loginViewModel.userAuthRepo)
+        GoogleAuthUiClientImpl(context as ComponentActivity, loginViewModel.userAuthRepo)
     }
 
     // Auto-login using Credential Manager

@@ -19,6 +19,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CancellationException
 import com.demo.authentication.R
 import com.demo.authentication.core.domain.utils.Resource
+import com.demo.authentication.features.domain.repository.GoogleAuthUiClient
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import com.google.firebase.auth.GoogleAuthProvider
@@ -26,16 +27,16 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 
-class GoogleAuthUiClient @Inject constructor(
+class GoogleAuthUiClientImpl @Inject constructor(
     private val activity: Activity,
     private val userAuthRepo: UserAuthRepo
-) {
+): GoogleAuthUiClient {
     private val tag = "GoogleAuthUiClient: "
 
     private val credentialManager = CredentialManager.create(activity)
     private val firebaseAuth = FirebaseAuth.getInstance()
 
-    fun isGoogleSignedIn(): Boolean {
+    private fun isGoogleSignedIn(): Boolean {
         if (firebaseAuth.currentUser != null) {
             println("$tag already Signed In")
             return true
@@ -44,7 +45,7 @@ class GoogleAuthUiClient @Inject constructor(
         }
     }
 
-    suspend fun googleSignIn(): Resource<String> {
+    override suspend fun googleSignIn(): Resource<String> {
         if (isGoogleSignedIn()) {
             return Resource.Success("Already Signed In")
         }
@@ -103,7 +104,7 @@ class GoogleAuthUiClient @Inject constructor(
         }
     }
 
-    suspend fun googleSignOut() {
+    override suspend fun googleSignOut() {
         credentialManager.clearCredentialState(
             ClearCredentialStateRequest()
         )
@@ -112,7 +113,7 @@ class GoogleAuthUiClient @Inject constructor(
 
     //// credential manager for normal login signup ////////
 
-    suspend fun userCredentialManagerRegister(emailId: String, password : String): Resource<String> {
+    override suspend fun userCredentialManagerRegister(emailId: String, password : String): Resource<String> {
         return try {
             credentialManager.createCredential(
                 context = activity,
@@ -131,7 +132,7 @@ class GoogleAuthUiClient @Inject constructor(
         }
     }
 
-    suspend fun userCredentialManagerLogin(): Resource<String> {
+    override suspend fun userCredentialManagerLogin(): Resource<String> {
         try {
             val credentialResponse = credentialManager.getCredential(
                 context = activity,

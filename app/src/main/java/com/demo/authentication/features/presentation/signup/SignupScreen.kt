@@ -41,8 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.demo.authentication.R
-import com.demo.authentication.features.data.repository.GoogleAuthUiClient
 import com.demo.authentication.core.domain.utils.Resource
+import com.demo.authentication.features.data.repository.GoogleAuthUiClientImpl
 import com.demo.authentication.features.presentation.components.CircularProgressBar
 import com.demo.authentication.features.presentation.components.CustomButton
 import com.demo.authentication.features.presentation.components.CustomImage
@@ -67,7 +67,7 @@ fun SignUpRoot(
     val context = LocalContext.current
 
     signupViewModel.googleAuthUiClient = remember {
-        GoogleAuthUiClient(context as ComponentActivity, signupViewModel.userAuthRepo)
+        GoogleAuthUiClientImpl(context as ComponentActivity, signupViewModel.userAuthRepo)
     }
 
     LaunchedEffect(signupState.value.signupResult) {

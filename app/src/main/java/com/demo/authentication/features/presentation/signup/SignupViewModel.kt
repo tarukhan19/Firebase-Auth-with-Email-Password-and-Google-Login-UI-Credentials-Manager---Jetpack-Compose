@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
-import com.demo.authentication.features.data.repository.GoogleAuthUiClient
 import com.demo.authentication.features.data.repository.UserAuthRepo
 import com.demo.authentication.core.domain.utils.Resource
 import com.demo.authentication.core.presentation.utils.isValidEmail
@@ -14,6 +13,7 @@ import com.demo.authentication.core.presentation.utils.isValidPassword
 import com.demo.authentication.core.presentation.utils.isValidPhoneNumber
 import com.demo.authentication.core.presentation.utils.matchesPassword
 import com.demo.authentication.features.data.local.entity.UserEntity
+import com.demo.authentication.features.data.repository.GoogleAuthUiClientImpl
 import com.demo.authentication.features.presentation.signup.SignupEvent.EnterConfirmPassword
 import com.demo.authentication.features.presentation.signup.SignupEvent.EnterEmail
 import com.demo.authentication.features.presentation.signup.SignupEvent.EnterFullName
@@ -75,7 +75,7 @@ class SignupViewModel @Inject constructor(val userAuthRepo: UserAuthRepo) : View
     private val _signUpState = MutableStateFlow(SignupState())
     val signUpState: StateFlow<SignupState> = _signUpState.asStateFlow()
 
-    lateinit var googleAuthUiClient: GoogleAuthUiClient
+    lateinit var googleAuthUiClient: GoogleAuthUiClientImpl
 
     val coroutineExceptionHandler: CoroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
