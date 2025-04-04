@@ -12,11 +12,11 @@ plugins {
 }
 
 android {
-    namespace = "com.demo.userauth"
+    namespace = "com.demo.authentication"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.demo.userauth"
+        applicationId = "com.demo.authentication"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
