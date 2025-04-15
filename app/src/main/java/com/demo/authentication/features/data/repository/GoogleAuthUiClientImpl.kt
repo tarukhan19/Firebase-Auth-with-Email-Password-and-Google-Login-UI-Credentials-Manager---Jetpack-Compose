@@ -29,7 +29,6 @@ import javax.inject.Inject
 
 class GoogleAuthUiClientImpl @Inject constructor(
     private val activity: Activity,
-    private val userAuthRepo: UserAuthRepo
 ): GoogleAuthUiClient {
     private val tag = "GoogleAuthUiClient: "
 
@@ -146,10 +145,10 @@ class GoogleAuthUiClientImpl @Inject constructor(
 
             var loginResult: Resource<String> = Resource.Error("Unexpected error") // Default error
 
-            userAuthRepo.userDatabaseLogin(credential.id, credential.password)
-                .collect { result ->
-                    loginResult = result  // Store the result inside the variable
-                }
+//            userAuthRepo.userDatabaseLogin(credential.id, credential.password)
+//                .collect { result ->
+//                    loginResult = result  // Store the result inside the variable
+//                }
            return loginResult // Return the collected result
 
         } catch (e: GetCredentialCancellationException) {
@@ -163,5 +162,4 @@ class GoogleAuthUiClientImpl @Inject constructor(
             return Resource.Error("GetCredentialException: ${e.message}")
         }
     }
-
 }

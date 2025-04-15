@@ -1,7 +1,6 @@
 package com.demo.authentication.features.presentation.login
 
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,8 +22,6 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -36,7 +33,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.demo.authentication.R
+import com.demo.authentication.core.domain.utils.AppResult
 import com.demo.authentication.core.domain.utils.Resource
 import com.demo.authentication.features.data.repository.GoogleAuthUiClientImpl
 import com.demo.authentication.features.presentation.components.CircularProgressBar
@@ -66,41 +65,40 @@ fun LoginScreenRoot(
     onSignUpNavigate: () -> Unit,
     onHomeNavigate: () -> Unit,
 ) {
-    val loginState = loginViewModel.loginState.collectAsState()
+    val loginState = loginViewModel.loginState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     // Set up GoogleAuthUiClient
-    loginViewModel.googleAuthUiClient = remember {
-        GoogleAuthUiClientImpl(context as ComponentActivity, loginViewModel.userAuthRepo)
-    }
+//    loginViewModel.googleAuthUiClient = remember {
+//        GoogleAuthUiClientImpl(context as ComponentActivity, loginViewModel.userAuthRepo)
+//    }
 
     // Auto-login using Credential Manager
-    LaunchedEffect(Unit) {
-        loginViewModel.userCredentialManagerLogin()
-    }
+//    LaunchedEffect(Unit) {
+//        loginViewModel.userCredentialManagerLogin()
+//    }
 
     LaunchedEffect(loginState.value.loginResult) {
 
         loginState.value.loginResult.let { result ->
             when (result) {
-                is Resource.Success -> {
-                    Toast.makeText(context, result.data, Toast.LENGTH_SHORT).show()
+                is AppResult.Success -> {
+                    Toast.makeText(context, result.data.email, Toast.LENGTH_SHORT).show()
                     loginViewModel.saveLoginStatus(true)
-                    loginViewModel.clearSignInResult()
 
                     onHomeNavigate()
                 }
-                is Resource.Error -> {
-                    Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
-                    loginViewModel.clearSignInResult()
 
+                is AppResult.Error -> {
+                    Toast.makeText(context, result.error.name, Toast.LENGTH_SHORT).show()
                 }
+
                 else -> {} // do nothing
             }
         }
     }
 
-    val loginAction = LoginAction (
+    val loginAction = LoginAction(
         onEmailChange = { loginViewModel.handleIntent(EnterEmail(it)) },
         onPasswordChange = { loginViewModel.handleIntent(EnterPassword(it)) },
         onTogglePasswordVisibility = { loginViewModel.handleIntent(TogglePasswordVisibility) },

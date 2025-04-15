@@ -1,6 +1,9 @@
 package com.demo.authentication.features.presentation.signup
 
+import com.demo.authentication.core.domain.utils.AppResult
+import com.demo.authentication.core.domain.utils.NetworkError
 import com.demo.authentication.core.domain.utils.Resource
+import com.google.firebase.auth.FirebaseUser
 
 data class SignupState (
     val fullName : String = "",
@@ -22,7 +25,7 @@ data class SignupState (
     val isTncAccepted: Boolean = false,
 
     val isLoading: Boolean = false,
-    val signupResult: Resource<String>? = null,
+    val signUpResult: AppResult<FirebaseUser, NetworkError>? = null,
     val credentialSignupResult: Resource<String>? = null
 
 )

@@ -1,6 +1,8 @@
 package com.demo.authentication.features.presentation.login
 
-import com.demo.authentication.core.domain.utils.Resource
+import com.demo.authentication.core.domain.utils.AppResult
+import com.demo.authentication.core.domain.utils.NetworkError
+import com.google.firebase.auth.FirebaseUser
 
 data class LoginState (
     val emailId : String = "",
@@ -12,5 +14,5 @@ data class LoginState (
     val showPassword : Boolean = false,
 
     val isLoading : Boolean = false,
-    val loginResult : Resource<String>? = null,
+    val loginResult: AppResult<FirebaseUser, NetworkError>? = null
 )

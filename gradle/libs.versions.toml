@@ -14,7 +14,6 @@ hilt-androidx = "1.2.0"
 ext-material-icon = "1.7.8"
 composeNavigation = "2.8.9"
 serialization = "1.6.3"
-room-ver = "2.6.1"
 ksp = "2.0.21-1.0.27"
 datastore = "1.1.3"
 googlever = "4.4.2"
@@ -44,15 +43,13 @@ hilt-navigation = { group = "androidx.hilt", name = "hilt-navigation-compose", v
 material_icon = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "ext-material-icon" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "composeNavigation" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
-androidx-rooms-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room-ver" }
-androidx-rooms-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room-ver" }
-androidx-rooms-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room-ver" }
 androidx-datastore = {group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore"}
 firebase-bom = {group = "com.google.firebase", name = "firebase-bom",  version.ref = "firebase"}
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth"}
 androidx-credential = { group = "androidx.credentials", name = "credentials", version.ref= "credentials" }
 androidx-credential-playservice = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }
 identity-googleid = { group = "com.google.android.libraries.identity.googleid" , name = "googleid" , version.ref = "googleidVer" }
+firebase-database = { group = "com.google.firebase" , name = "firebase-auth-ktx"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

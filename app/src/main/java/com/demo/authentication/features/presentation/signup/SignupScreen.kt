@@ -1,7 +1,6 @@
 package com.demo.authentication.features.presentation.signup
 
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -41,8 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.demo.authentication.R
+import com.demo.authentication.core.domain.utils.AppResult
 import com.demo.authentication.core.domain.utils.Resource
-import com.demo.authentication.features.data.repository.GoogleAuthUiClientImpl
 import com.demo.authentication.features.presentation.components.CircularProgressBar
 import com.demo.authentication.features.presentation.components.CustomButton
 import com.demo.authentication.features.presentation.components.CustomImage
@@ -66,20 +64,19 @@ fun SignUpRoot(
     val signupState = signupViewModel.signUpState.collectAsState()
     val context = LocalContext.current
 
-    signupViewModel.googleAuthUiClient = remember {
-        GoogleAuthUiClientImpl(context as ComponentActivity, signupViewModel.userAuthRepo)
-    }
+//    signupViewModel.googleAuthUiClient = remember {
+//        GoogleAuthUiClientImpl(context as ComponentActivity, signupViewModel.userAuthRepo)
+//    }
 
-    LaunchedEffect(signupState.value.signupResult) {
-        signupState.value.signupResult.let { result ->
+    LaunchedEffect(signupState.value.signUpResult) {
+        signupState.value.signUpResult.let { result ->
             when (result) {
-                is Resource.Success -> {
-                    signupViewModel.userCredentialManagerRegister()
+                is AppResult.Success -> {
+                    Toast.makeText(context, result.data.email, Toast.LENGTH_SHORT).show()
                 }
 
-                is Resource.Error -> {
-                    Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
-                    signupViewModel.clearSignupResult()
+                is AppResult.Error -> {
+                    Toast.makeText(context, result.error.name, Toast.LENGTH_SHORT).show()
                 }
 
                 else -> {}// do nothing
@@ -92,12 +89,10 @@ fun SignUpRoot(
             when (result) {
                 is Resource.Success -> {
                     Toast.makeText(context, result.data, Toast.LENGTH_SHORT).show()
-                    signupViewModel.clearSignupResult()
                 }
 
                 is Resource.Error -> {
                     Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
-                    signupViewModel.clearSignupResult()
                 }
 
                 else -> {}// do nothing

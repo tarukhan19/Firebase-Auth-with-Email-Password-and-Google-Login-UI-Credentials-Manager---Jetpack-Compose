@@ -20,6 +20,12 @@
     <string name="accept_tnc_error">Accept TNC for successful registration</string>
     <string name="default_web_client_id">983307147151-jph764q6nrmbvhed925bb99k452c4pj1.apps.googleusercontent.com</string>
 
+    <string name="error_request_timeout">The request timed out.</string>
+    <string name="error_too_many_requests">Oops, it seems like your quota is exceeded.</string>
+    <string name="error_no_internet">Couldn\'t connect to server, please check your internet connection.</string>
+    <string name="error_unknown">Something went wrong. Please try again later.</string>
+    <string name="error_serialization">Couldn\'t serialize or deserialize data.</string>
+
     <string name="app_icon">App Icon</string>
 
 </resources>

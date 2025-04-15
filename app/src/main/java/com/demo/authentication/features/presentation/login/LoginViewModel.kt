@@ -5,12 +5,14 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
-import com.demo.authentication.features.data.repository.UserAuthRepo
-import com.demo.authentication.core.domain.utils.Resource
+import com.demo.authentication.core.domain.utils.AppResult
+import com.demo.authentication.core.domain.utils.onError
+import com.demo.authentication.core.domain.utils.onSuccess
 import com.demo.authentication.core.presentation.utils.isValidEmail
 import com.demo.authentication.core.presentation.utils.isValidPassword
 import com.demo.authentication.features.data.datastore.UserPreferences
 import com.demo.authentication.features.data.repository.GoogleAuthUiClientImpl
+import com.demo.authentication.features.domain.usecase.SignInUseCase
 import com.demo.authentication.features.presentation.login.LoginEvent.EnterEmail
 import com.demo.authentication.features.presentation.login.LoginEvent.EnterPassword
 import com.demo.authentication.features.presentation.login.LoginEvent.GoogleLogin
@@ -20,20 +22,19 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    val userAuthRepo: UserAuthRepo,
+    val signInUseCase: SignInUseCase,
     private val userPreferences: UserPreferences,
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow(LoginState())
     val loginState: StateFlow<LoginState> = _loginState.asStateFlow()
 
-    lateinit var googleAuthUiClient: GoogleAuthUiClientImpl
+   // lateinit var googleAuthUiClient: GoogleAuthUiClientImpl
 
     val coroutineExceptionHandler: CoroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
@@ -75,7 +76,7 @@ class LoginViewModel @Inject constructor(
             }
 
             is GoogleLogin -> {
-                googleSignIn()
+               // googleSignIn()
             }
         }
     }
@@ -91,40 +92,46 @@ class LoginViewModel @Inject constructor(
         return !state.emailId.isValidEmail() && !state.password.isValidPassword()
     }
 
-    private fun googleSignIn() {
-        getState { it.copy(isLoading = true) }
+//    private fun googleSignIn() {
+//        getState { it.copy(isLoading = true) }
+//
+//        viewModelScope.launch(coroutineExceptionHandler) {
+//            val result = googleAuthUiClient.googleSignIn()
+//            getState { it.copy(isLoading = false, loginResult = result) }
+//        }
+//    }
 
-        viewModelScope.launch(coroutineExceptionHandler) {
-            val result = googleAuthUiClient.googleSignIn()
-            getState { it.copy(isLoading = false, loginResult = result) }
-        }
-    }
-
-    fun userCredentialManagerLogin() {
-        getState { it.copy(isLoading = true) }
-
-        viewModelScope.launch(coroutineExceptionHandler) {
-            val result = googleAuthUiClient.userCredentialManagerLogin()
-            getState { it.copy(isLoading = false, loginResult = result) }
-        }
-    }
+//    fun userCredentialManagerLogin() {
+//        getState { it.copy(isLoading = true) }
+//
+//        viewModelScope.launch(coroutineExceptionHandler) {
+//            val result = googleAuthUiClient.userCredentialManagerLogin()
+//            getState { it.copy(isLoading = false, loginResult = result) }
+//        }
+//    }
 
     private fun submitLogin() {
         viewModelScope.launch(coroutineExceptionHandler) {
             getState { it.copy(isLoading = true) }
 
             if (isValidateInput()) {
-                userAuthRepo.userDatabaseLogin(_loginState.value.emailId, _loginState.value.password)
-                    .catch { e ->
+
+                signInUseCase(_loginState.value.emailId, _loginState.value.password)
+                    .onSuccess { user ->
                         getState {
                             it.copy(
                                 isLoading = false,
-                                loginResult = Resource.Error("Login failed: ${e.localizedMessage}")
+                                loginResult = AppResult.Success(user)
                             )
                         }
                     }
-                    .collect { result ->
-                        getState { it.copy(isLoading = false, loginResult = result) }
+                    .onError { error ->
+                        getState {
+                            it.copy(
+                                isLoading = false,
+                                loginResult = AppResult.Error(error)
+                            )
+                        }
                     }
             } else {
                 getState { it.copy(isLoading = false) }
@@ -132,7 +139,5 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun clearSignInResult() {
-        getState { it.copy(loginResult = null) }
-    }
+
 }

@@ -5,15 +5,18 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
-import com.demo.authentication.features.data.repository.UserAuthRepo
+import com.demo.authentication.core.domain.utils.AppResult
 import com.demo.authentication.core.domain.utils.Resource
+import com.demo.authentication.core.domain.utils.onError
+import com.demo.authentication.core.domain.utils.onSuccess
 import com.demo.authentication.core.presentation.utils.isValidEmail
 import com.demo.authentication.core.presentation.utils.isValidName
 import com.demo.authentication.core.presentation.utils.isValidPassword
 import com.demo.authentication.core.presentation.utils.isValidPhoneNumber
 import com.demo.authentication.core.presentation.utils.matchesPassword
-import com.demo.authentication.features.data.local.entity.UserEntity
 import com.demo.authentication.features.data.repository.GoogleAuthUiClientImpl
+import com.demo.authentication.features.domain.usecase.SignInUseCase
+import com.demo.authentication.features.domain.usecase.SignUpUseCase
 import com.demo.authentication.features.presentation.signup.SignupEvent.EnterConfirmPassword
 import com.demo.authentication.features.presentation.signup.SignupEvent.EnterEmail
 import com.demo.authentication.features.presentation.signup.SignupEvent.EnterFullName
@@ -70,12 +73,12 @@ will automatically provide an instance of UserAuthRepo when creating SignupViewM
 * */
 
 @HiltViewModel
-class SignupViewModel @Inject constructor(val userAuthRepo: UserAuthRepo) : ViewModel() {
+class SignupViewModel @Inject constructor(val signUpUseCase: SignUpUseCase) : ViewModel() {
 
     private val _signUpState = MutableStateFlow(SignupState())
     val signUpState: StateFlow<SignupState> = _signUpState.asStateFlow()
 
-    lateinit var googleAuthUiClient: GoogleAuthUiClientImpl
+   // lateinit var googleAuthUiClient: GoogleAuthUiClientImpl
 
     val coroutineExceptionHandler: CoroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
@@ -163,39 +166,44 @@ class SignupViewModel @Inject constructor(val userAuthRepo: UserAuthRepo) : View
         }
     }
 
-    fun userCredentialManagerRegister() {
-        getState { it.copy(isLoading = true) }
-
-        viewModelScope.launch(coroutineExceptionHandler) {
-           val result = googleAuthUiClient.userCredentialManagerRegister(
-                _signUpState.value.emailId,
-                _signUpState.value.password
-            )
-            getState { it.copy(isLoading = false, credentialSignupResult = result) }
-        }
-    }
+//    fun userCredentialManagerRegister() {
+//        getState { it.copy(isLoading = true) }
+//
+//        viewModelScope.launch(coroutineExceptionHandler) {
+//            val result = googleAuthUiClient.userCredentialManagerRegister(
+//                _signUpState.value.emailId,
+//                _signUpState.value.password
+//            )
+//            getState { it.copy(isLoading = false, credentialSignupResult = result) }
+//        }
+//    }
 
     private fun registerUser() {
         viewModelScope.launch(coroutineExceptionHandler) {
 
             getState { it.copy(isLoading = true) }
             if (validateInput()) {
-                userAuthRepo.userDatabaseRegister(
-                    UserEntity(
-                        emailId = _signUpState.value.emailId,
-                        phoneNumber = _signUpState.value.phoneNumber,
-                        fullName = _signUpState.value.fullName,
-                        password = _signUpState.value.password
-                    )
-                ).catch { e ->
+                signUpUseCase(
+                    _signUpState.value.emailId,
+                    _signUpState.value.password,
+                    _signUpState.value.fullName,
+                    _signUpState.value.phoneNumber
+
+                ).onSuccess { user ->
                     getState {
                         it.copy(
                             isLoading = false,
-                            signupResult = Resource.Error("Signup failed: ${e.localizedMessage}")
+                            signUpResult = AppResult.Success(user)
                         )
                     }
-                }.collect { result ->
-                    getState { it.copy(isLoading = false, signupResult = result) }
+                }.onError { error ->
+                    getState {
+                        it.copy(
+                            isLoading = false,
+                            signUpResult = AppResult.Error(error)
+                        )
+                    }
+
                 }
             } else {
                 getState { it.copy(isLoading = false) }
@@ -217,9 +225,5 @@ class SignupViewModel @Inject constructor(val userAuthRepo: UserAuthRepo) : View
                 && !state.password.isValidPassword()
                 && !state.password.matchesPassword(state.confirmPassword)
                 && state.isTncAccepted)
-    }
-
-    fun clearSignupResult() {
-        getState { it.copy(signupResult = null) }
     }
 }
