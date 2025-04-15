@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.demo.authentication.core.domain.utils.AppResult
+import com.demo.authentication.core.domain.utils.NetworkError
 import com.demo.authentication.core.domain.utils.Resource
 import com.demo.authentication.core.domain.utils.onError
 import com.demo.authentication.core.domain.utils.onSuccess
@@ -26,9 +27,12 @@ import com.demo.authentication.features.presentation.signup.SignupEvent.Submit
 import com.demo.authentication.features.presentation.signup.SignupEvent.ToggleConfirmPasswordVisibility
 import com.demo.authentication.features.presentation.signup.SignupEvent.TogglePasswordVisibility
 import com.demo.authentication.features.presentation.signup.SignupEvent.ToggleTnc
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
@@ -78,7 +82,10 @@ class SignupViewModel @Inject constructor(val signUpUseCase: SignUpUseCase) : Vi
     private val _signUpState = MutableStateFlow(SignupState())
     val signUpState: StateFlow<SignupState> = _signUpState.asStateFlow()
 
-   // lateinit var googleAuthUiClient: GoogleAuthUiClientImpl
+    private val _signUpResult = MutableSharedFlow<AppResult<FirebaseUser, NetworkError>>()
+    val signUpResult = _signUpResult.asSharedFlow()
+
+    // lateinit var googleAuthUiClient: GoogleAuthUiClientImpl
 
     val coroutineExceptionHandler: CoroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
@@ -193,17 +200,17 @@ class SignupViewModel @Inject constructor(val signUpUseCase: SignUpUseCase) : Vi
                     getState {
                         it.copy(
                             isLoading = false,
-                            signUpResult = AppResult.Success(user)
                         )
                     }
+                    _signUpResult.emit(AppResult.Success(user))
+
                 }.onError { error ->
                     getState {
                         it.copy(
                             isLoading = false,
-                            signUpResult = AppResult.Error(error)
                         )
                     }
-
+                    _signUpResult.emit(AppResult.Error(error))
                 }
             } else {
                 getState { it.copy(isLoading = false) }

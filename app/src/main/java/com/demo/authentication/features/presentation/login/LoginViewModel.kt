@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.demo.authentication.core.domain.utils.AppResult
+import com.demo.authentication.core.domain.utils.NetworkError
 import com.demo.authentication.core.domain.utils.onError
 import com.demo.authentication.core.domain.utils.onSuccess
 import com.demo.authentication.core.presentation.utils.isValidEmail
@@ -18,9 +19,12 @@ import com.demo.authentication.features.presentation.login.LoginEvent.EnterPassw
 import com.demo.authentication.features.presentation.login.LoginEvent.GoogleLogin
 import com.demo.authentication.features.presentation.login.LoginEvent.Submit
 import com.demo.authentication.features.presentation.login.LoginEvent.TogglePasswordVisibility
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -34,7 +38,10 @@ class LoginViewModel @Inject constructor(
     private val _loginState = MutableStateFlow(LoginState())
     val loginState: StateFlow<LoginState> = _loginState.asStateFlow()
 
-   // lateinit var googleAuthUiClient: GoogleAuthUiClientImpl
+    private val _loginResult = MutableSharedFlow<AppResult<FirebaseUser, NetworkError>>()
+    val loginResult = _loginResult.asSharedFlow()
+
+    // lateinit var googleAuthUiClient: GoogleAuthUiClientImpl
 
     val coroutineExceptionHandler: CoroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
@@ -76,7 +83,7 @@ class LoginViewModel @Inject constructor(
             }
 
             is GoogleLogin -> {
-               // googleSignIn()
+                // googleSignIn()
             }
         }
     }
@@ -121,17 +128,18 @@ class LoginViewModel @Inject constructor(
                         getState {
                             it.copy(
                                 isLoading = false,
-                                loginResult = AppResult.Success(user)
                             )
                         }
+                        _loginResult.emit(AppResult.Success(user))
+                        saveLoginStatus(true)
                     }
                     .onError { error ->
                         getState {
                             it.copy(
                                 isLoading = false,
-                                loginResult = AppResult.Error(error)
                             )
                         }
+                        _loginResult.emit(AppResult.Error(error))
                     }
             } else {
                 getState { it.copy(isLoading = false) }

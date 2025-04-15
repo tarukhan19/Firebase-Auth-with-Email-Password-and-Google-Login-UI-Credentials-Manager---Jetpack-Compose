@@ -37,6 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.demo.authentication.R
 import com.demo.authentication.core.domain.utils.AppResult
 import com.demo.authentication.core.domain.utils.Resource
+import com.demo.authentication.core.presentation.utils.ObserveAsEvents
 import com.demo.authentication.features.data.repository.GoogleAuthUiClientImpl
 import com.demo.authentication.features.presentation.components.CircularProgressBar
 import com.demo.authentication.features.presentation.components.CustomButton
@@ -78,14 +79,11 @@ fun LoginScreenRoot(
 //        loginViewModel.userCredentialManagerLogin()
 //    }
 
-    LaunchedEffect(loginState.value.loginResult) {
 
-        loginState.value.loginResult.let { result ->
+    ObserveAsEvents(loginViewModel.loginResult) {result ->
             when (result) {
                 is AppResult.Success -> {
                     Toast.makeText(context, result.data.email, Toast.LENGTH_SHORT).show()
-                    loginViewModel.saveLoginStatus(true)
-
                     onHomeNavigate()
                 }
 
@@ -95,7 +93,6 @@ fun LoginScreenRoot(
 
                 else -> {} // do nothing
             }
-        }
     }
 
     val loginAction = LoginAction(

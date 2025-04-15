@@ -25,7 +25,5 @@ data class SignupState (
     val isTncAccepted: Boolean = false,
 
     val isLoading: Boolean = false,
-    val signUpResult: AppResult<FirebaseUser, NetworkError>? = null,
-    val credentialSignupResult: Resource<String>? = null
 
 )

@@ -41,6 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.demo.authentication.R
 import com.demo.authentication.core.domain.utils.AppResult
 import com.demo.authentication.core.domain.utils.Resource
+import com.demo.authentication.core.presentation.utils.ObserveAsEvents
 import com.demo.authentication.features.presentation.components.CircularProgressBar
 import com.demo.authentication.features.presentation.components.CustomButton
 import com.demo.authentication.features.presentation.components.CustomImage
@@ -68,36 +69,19 @@ fun SignUpRoot(
 //        GoogleAuthUiClientImpl(context as ComponentActivity, signupViewModel.userAuthRepo)
 //    }
 
-    LaunchedEffect(signupState.value.signUpResult) {
-        signupState.value.signUpResult.let { result ->
-            when (result) {
-                is AppResult.Success -> {
-                    Toast.makeText(context, result.data.email, Toast.LENGTH_SHORT).show()
-                }
-
-                is AppResult.Error -> {
-                    Toast.makeText(context, result.error.name, Toast.LENGTH_SHORT).show()
-                }
-
-                else -> {}// do nothing
+    ObserveAsEvents(signupViewModel.signUpResult) { result ->
+        when (result) {
+            is AppResult.Success -> {
+                Toast.makeText(context, result.data.email, Toast.LENGTH_SHORT).show()
             }
-        }
-    }
 
-    LaunchedEffect(signupState.value.credentialSignupResult) {
-        signupState.value.credentialSignupResult.let { result ->
-            when (result) {
-                is Resource.Success -> {
-                    Toast.makeText(context, result.data, Toast.LENGTH_SHORT).show()
-                }
-
-                is Resource.Error -> {
-                    Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
-                }
-
-                else -> {}// do nothing
+            is AppResult.Error -> {
+                Toast.makeText(context, result.error.name, Toast.LENGTH_SHORT).show()
             }
+
+            else -> {}// do nothing
         }
+
     }
 
     val signupAction = SignupAction(
