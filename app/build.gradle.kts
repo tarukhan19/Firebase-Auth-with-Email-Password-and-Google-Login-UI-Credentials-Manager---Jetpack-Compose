@@ -77,10 +77,6 @@ dependencies {
     // navigation
     implementation(libs.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
-    // Room Database
-    implementation(libs.androidx.rooms.runtime)
-    ksp (libs.androidx.rooms.compiler)
-    implementation(libs.androidx.rooms.ktx)
     // datastore
     implementation(libs.androidx.datastore)
     //google-signIn
@@ -89,6 +85,7 @@ dependencies {
     implementation(libs.androidx.credential)
     implementation(libs.androidx.credential.playservice)
     implementation(libs.identity.googleid)
+    implementation(libs.firebase.database)
 
     // testing
     testImplementation(libs.junit)
