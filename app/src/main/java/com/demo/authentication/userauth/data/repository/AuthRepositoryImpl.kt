@@ -10,7 +10,7 @@ import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class AuthRepositoryImpl @Inject constructor(val credentialManagerHelper: CredentialManagementImpl) : AuthRepository {
+class AuthRepositoryImpl @Inject constructor() : AuthRepository {
 
     val mAuth = FirebaseAuth.getInstance()
 
