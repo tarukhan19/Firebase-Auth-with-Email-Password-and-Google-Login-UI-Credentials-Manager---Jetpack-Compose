@@ -13,6 +13,7 @@ import com.demo.authentication.core.domain.utils.onSuccess
 import com.demo.authentication.core.presentation.utils.isValidEmail
 import com.demo.authentication.core.presentation.utils.isValidPassword
 import com.demo.authentication.userauth.domain.repository.AuthRepository
+import com.demo.authentication.userauth.domain.repository.CredentialManagement
 import com.demo.authentication.userauth.presentation.login.LoginEvent.EnterEmail
 import com.demo.authentication.userauth.presentation.login.LoginEvent.EnterPassword
 import com.demo.authentication.userauth.presentation.login.LoginEvent.GoogleLogin
@@ -31,6 +32,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     val authRepository: AuthRepository,
+    val credentialManagement: CredentialManagement,
     private val dataStoreAuthPreferences: DataStoreAuthPreferences,
 ) : ViewModel() {
 
@@ -39,8 +41,6 @@ class LoginViewModel @Inject constructor(
 
     private val _loginResult = MutableSharedFlow<AppResult<FirebaseUser, NetworkError>>()
     val loginResult = _loginResult.asSharedFlow()
-
-    // lateinit var googleAuthUiClient: GoogleAuthUiClientImpl
 
     val coroutineExceptionHandler: CoroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
@@ -97,24 +97,6 @@ class LoginViewModel @Inject constructor(
         val state = _loginState.value
         return !state.emailId.isValidEmail() && !state.password.isValidPassword()
     }
-
-//    private fun googleSignIn() {
-//        getState { it.copy(isLoading = true) }
-//
-//        viewModelScope.launch(coroutineExceptionHandler) {
-//            val result = googleAuthUiClient.googleSignIn()
-//            getState { it.copy(isLoading = false, loginResult = result) }
-//        }
-//    }
-
-//    fun userCredentialManagerLogin() {
-//        getState { it.copy(isLoading = true) }
-//
-//        viewModelScope.launch(coroutineExceptionHandler) {
-//            val result = googleAuthUiClient.userCredentialManagerLogin()
-//            getState { it.copy(isLoading = false, loginResult = result) }
-//        }
-//    }
 
     private fun submitLogin() {
         viewModelScope.launch(coroutineExceptionHandler) {

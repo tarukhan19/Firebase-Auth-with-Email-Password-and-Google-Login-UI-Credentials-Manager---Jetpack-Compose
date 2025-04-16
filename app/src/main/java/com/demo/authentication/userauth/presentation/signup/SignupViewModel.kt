@@ -15,6 +15,7 @@ import com.demo.authentication.core.presentation.utils.isValidPassword
 import com.demo.authentication.core.presentation.utils.isValidPhoneNumber
 import com.demo.authentication.core.presentation.utils.matchesPassword
 import com.demo.authentication.userauth.domain.repository.AuthRepository
+import com.demo.authentication.userauth.domain.repository.CredentialManagement
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.EnterConfirmPassword
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.EnterEmail
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.EnterFullName
@@ -73,15 +74,16 @@ will automatically provide an instance of UserAuthRepo when creating SignupViewM
 * */
 
 @HiltViewModel
-class SignupViewModel @Inject constructor(val authRepository: AuthRepository) : ViewModel() {
+class SignupViewModel @Inject constructor(
+    val authRepository: AuthRepository,
+    val credentialManagement: CredentialManagement,
+) : ViewModel() {
 
     private val _signUpState = MutableStateFlow(SignupState())
     val signUpState: StateFlow<SignupState> = _signUpState.asStateFlow()
 
     private val _signUpResult = MutableSharedFlow<AppResult<FirebaseUser, NetworkError>>()
     val signUpResult = _signUpResult.asSharedFlow()
-
-    // lateinit var googleAuthUiClient: GoogleAuthUiClientImpl
 
     val coroutineExceptionHandler: CoroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->

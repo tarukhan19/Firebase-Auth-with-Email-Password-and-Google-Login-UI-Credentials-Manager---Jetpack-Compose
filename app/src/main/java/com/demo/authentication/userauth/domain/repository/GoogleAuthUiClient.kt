@@ -8,6 +8,4 @@ import com.google.firebase.auth.FirebaseUser
 interface GoogleAuthUiClient {
     suspend fun googleSignIn() : Resource<String>
     suspend fun googleSignOut()
-    suspend fun userCredentialManagerRegister(email : String, password : String): Resource<String>
-    suspend fun userCredentialManagerLogin() : Resource<String>
 }

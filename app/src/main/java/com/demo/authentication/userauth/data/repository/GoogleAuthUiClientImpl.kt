@@ -14,6 +14,7 @@ import androidx.credentials.exceptions.CreateCredentialException
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.exceptions.NoCredentialException
+import com.demo.authentication.MyApplication
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CancellationException
@@ -28,11 +29,10 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 
-class GoogleAuthUiClientImpl @Inject constructor(
-    private val activity: Activity,
-): GoogleAuthUiClient {
+class GoogleAuthUiClientImpl @Inject constructor(): GoogleAuthUiClient {
     private val tag = "GoogleAuthUiClient: "
 
+    private val activity = MyApplication.instance
     private val credentialManager = CredentialManager.create(activity)
     private val firebaseAuth = FirebaseAuth.getInstance()
 
@@ -113,54 +113,5 @@ class GoogleAuthUiClientImpl @Inject constructor(
 
     //// credential manager for normal login signup ////////
 
-    override suspend fun userCredentialManagerRegister(emailId: String, password : String): Resource<String> {
-        return try {
-            credentialManager.createCredential(
-                context = activity,
-                request = CreatePasswordRequest(
-                    id = emailId,
-                    password = password
-                )
-            )
-            Resource.Success("Registration successful") // Return the collected result
-        } catch (e: CreateCredentialCancellationException) {
-            e.printStackTrace()
-            Resource.Error("CreateCredentialCancellationException: ${e.message}")
-        } catch (e: CreateCredentialException) {
-            e.printStackTrace()
-            Resource.Error("CreateCredentialException: ${e.message}")
-        }
-    }
 
-    override suspend fun userCredentialManagerLogin(): Resource<String> {
-        try {
-            val credentialResponse = credentialManager.getCredential(
-                context = activity,
-                request = GetCredentialRequest(
-                    credentialOptions = listOf(GetPasswordOption())
-                )
-            )
-
-            val credential = credentialResponse.credential as? PasswordCredential
-                ?: return Resource.Error("Something went wrong")
-
-            var loginResult: Resource<String> = Resource.Error("Unexpected error") // Default error
-
-//            userAuthRepo.userDatabaseLogin(credential.id, credential.password)
-//                .collect { result ->
-//                    loginResult = result  // Store the result inside the variable
-//                }
-           return loginResult // Return the collected result
-
-        } catch (e: GetCredentialCancellationException) {
-            e.printStackTrace()
-            return Resource.Error("GetCredentialCancellationException: ${e.message}")
-        } catch (e: NoCredentialException) {
-            e.printStackTrace()
-            return Resource.Error("NoCredentialException: ${e.message}")
-        } catch (e: GetCredentialException) {
-            e.printStackTrace()
-            return Resource.Error("GetCredentialException: ${e.message}")
-        }
-    }
 }

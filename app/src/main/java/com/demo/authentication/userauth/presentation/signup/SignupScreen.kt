@@ -22,6 +22,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -39,6 +40,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.demo.authentication.R
 import com.demo.authentication.core.domain.utils.AppResult
+import com.demo.authentication.core.domain.utils.onError
+import com.demo.authentication.core.domain.utils.onSuccess
 import com.demo.authentication.core.presentation.utils.ObserveAsEvents
 import com.demo.authentication.core.presentation.utils.toUserFriendlyMessage
 import com.demo.authentication.userauth.presentation.components.CircularProgressBar
@@ -55,6 +58,7 @@ import com.demo.authentication.userauth.presentation.signup.SignupEvent.EnterPho
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.Submit
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.TogglePasswordVisibility
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.ToggleTnc
+import kotlinx.coroutines.launch
 
 @Composable
 fun SignUpRoot(
@@ -63,15 +67,34 @@ fun SignUpRoot(
 ) {
     val signupState = signupViewModel.signUpState.collectAsState()
     val context = LocalContext.current
-
-//    signupViewModel.googleAuthUiClient = remember {
-//        GoogleAuthUiClientImpl(context as ComponentActivity, signupViewModel.userAuthRepo)
-//    }
+    val coroutineScope = rememberCoroutineScope()
 
     ObserveAsEvents(signupViewModel.signUpResult) { result ->
         when (result) {
             is AppResult.Success -> {
-                Toast.makeText(context, result.data.email, Toast.LENGTH_SHORT).show()
+
+                coroutineScope.launch {
+
+                    signupViewModel.credentialManagement.launchCreateCredential(
+                        context = context,
+                        email = signupState.value.emailId,
+                        password = signupState.value.password
+                    ) { response ->
+                        response
+                            .onSuccess {
+                                Toast.makeText(context, "Signup Successful!", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                            .onError {
+                                Toast.makeText(
+                                    context,
+                                    it.toUserFriendlyMessage(),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                    }
+                }
+
             }
 
             is AppResult.Error -> {

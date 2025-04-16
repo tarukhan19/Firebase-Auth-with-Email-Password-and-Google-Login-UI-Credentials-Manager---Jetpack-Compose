@@ -1,6 +1,5 @@
 package com.demo.authentication.userauth.data.repository
 
-import android.util.Log
 import com.demo.authentication.core.domain.utils.AppResult
 import com.demo.authentication.core.domain.utils.NetworkError
 import com.demo.authentication.core.presentation.utils.toUserFriendlyMessage
@@ -11,7 +10,7 @@ import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class AuthRepositoryImpl @Inject constructor() : AuthRepository {
+class AuthRepositoryImpl @Inject constructor(val credentialManagerHelper: CredentialManagementImpl) : AuthRepository {
 
     val mAuth = FirebaseAuth.getInstance()
 
@@ -23,7 +22,8 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
     ): AppResult<FirebaseUser, NetworkError> {
         return safeFirebaseCall {
             val authResult = mAuth.createUserWithEmailAndPassword(email, password).await()
-            authResult.user ?: throw Exception(NetworkError.USER_NOT_FOUND.toUserFriendlyMessage())
+            val user = authResult.user ?: throw Exception(NetworkError.USER_NOT_FOUND.toUserFriendlyMessage())
+            user
         }
     }
 
@@ -33,7 +33,8 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
     ): AppResult<FirebaseUser, NetworkError> {
         return safeFirebaseCall {
             val authResult = mAuth.signInWithEmailAndPassword(email.trim(), password.trim()).await()
-            authResult.user ?: throw Exception(NetworkError.USER_NOT_FOUND.toUserFriendlyMessage())
+            val user = authResult.user ?: throw Exception(NetworkError.USER_NOT_FOUND.toUserFriendlyMessage())
+            user
         }
     }
 }

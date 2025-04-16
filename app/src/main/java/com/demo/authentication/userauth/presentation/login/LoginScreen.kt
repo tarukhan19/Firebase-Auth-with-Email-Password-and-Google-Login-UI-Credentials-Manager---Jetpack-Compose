@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -35,6 +37,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.demo.authentication.R
 import com.demo.authentication.core.domain.utils.AppResult
+import com.demo.authentication.core.domain.utils.onError
+import com.demo.authentication.core.domain.utils.onSuccess
 import com.demo.authentication.core.presentation.utils.ObserveAsEvents
 import com.demo.authentication.core.presentation.utils.toUserFriendlyMessage
 import com.demo.authentication.userauth.presentation.components.CircularProgressBar
@@ -50,6 +54,8 @@ import com.demo.authentication.userauth.presentation.login.LoginEvent.EnterPassw
 import com.demo.authentication.userauth.presentation.login.LoginEvent.GoogleLogin
 import com.demo.authentication.userauth.presentation.login.LoginEvent.Submit
 import com.demo.authentication.userauth.presentation.login.LoginEvent.TogglePasswordVisibility
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 /*
 If we are passing , hiltViewModel in login screen, preview don't work
@@ -66,32 +72,7 @@ fun LoginScreenRoot(
 ) {
     val loginState = loginViewModel.loginState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-
-    // Set up GoogleAuthUiClient
-//    loginViewModel.googleAuthUiClient = remember {
-//        GoogleAuthUiClientImpl(context as ComponentActivity, loginViewModel.userAuthRepo)
-//    }
-
-    // Auto-login using Credential Manager
-//    LaunchedEffect(Unit) {
-//        loginViewModel.userCredentialManagerLogin()
-//    }
-
-
-    ObserveAsEvents(loginViewModel.loginResult) {result ->
-            when (result) {
-                is AppResult.Success -> {
-                    Toast.makeText(context, result.data.email, Toast.LENGTH_SHORT).show()
-                    onHomeNavigate()
-                }
-
-                is AppResult.Error -> {
-                    Toast.makeText(context, result.error.toUserFriendlyMessage(), Toast.LENGTH_SHORT).show()
-                }
-
-                else -> {} // do nothing
-            }
-    }
+    val coroutineScope = rememberCoroutineScope()
 
     val loginAction = LoginAction(
         onEmailChange = { loginViewModel.handleIntent(EnterEmail(it)) },
@@ -102,6 +83,58 @@ fun LoginScreenRoot(
         onSignUpNavigate = onSignUpNavigate,
         isButtonEnabled = loginViewModel.isValidateInput()
     )
+
+    LaunchedEffect(Unit) {
+        context.let {
+            loginViewModel.credentialManagement.launchGetCredential(context) { response ->
+                response.onSuccess { passwordCredential ->
+                    if (true) {
+                        loginAction.onEmailChange(passwordCredential.id)
+                        loginAction.onPasswordChange(passwordCredential.password)
+                        loginAction.onSubmit()
+                    }
+                }
+            }
+        }
+    }
+
+    ObserveAsEvents(loginViewModel.loginResult) { result ->
+        when (result) {
+            is AppResult.Success -> {
+
+                coroutineScope.launch {
+
+                    loginViewModel.credentialManagement.launchCreateCredential(
+                        context = context,
+                        email = loginState.value.emailId,
+                        password = loginState.value.password
+                    ) { response ->
+                        response
+                            .onSuccess {
+                                Toast.makeText(context, "Login Successful!", Toast.LENGTH_SHORT)
+                                    .show()
+                                onHomeNavigate()
+                            }
+                            .onError {
+                                Toast.makeText(
+                                    context,
+                                    it.toUserFriendlyMessage(),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                    }
+                }
+            }
+
+            is AppResult.Error -> {
+                Toast.makeText(context, result.error.toUserFriendlyMessage(), Toast.LENGTH_SHORT)
+                    .show()
+            }
+
+            else -> {} // do nothing
+        }
+    }
+
     LoginScreen(
         loginState = loginState.value,
         loginAction = loginAction
