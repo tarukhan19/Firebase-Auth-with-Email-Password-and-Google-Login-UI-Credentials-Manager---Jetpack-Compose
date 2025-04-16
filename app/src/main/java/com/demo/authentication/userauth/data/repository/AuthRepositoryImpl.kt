@@ -3,13 +3,13 @@ package com.demo.authentication.userauth.data.repository
 import android.util.Log
 import com.demo.authentication.core.domain.utils.AppResult
 import com.demo.authentication.core.domain.utils.NetworkError
-import com.demo.authentication.core.presentation.utils.toNetworkError
+import com.demo.authentication.core.presentation.utils.toUserFriendlyMessage
+import com.demo.authentication.userauth.data.networking.safeFirebaseCall
 import com.demo.authentication.userauth.domain.repository.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class AuthRepositoryImpl @Inject constructor() : AuthRepository {
 
@@ -20,42 +20,20 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
         password: String,
         name: String,
         mobileNo: String
-    ): AppResult<FirebaseUser, NetworkError> =
-        suspendCoroutine { cont ->
-            mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnSuccessListener { response ->
-                    val user = response.user
-                    if (user != null) {
-                        cont.resume(AppResult.Success(user))
-                    } else {
-                        cont.resume(AppResult.Error(NetworkError.UNKNOWN))
-                    }
-                }
-                .addOnFailureListener { exception ->
-                    cont.resume(AppResult.Error(exception.toNetworkError()))
-                }
+    ): AppResult<FirebaseUser, NetworkError> {
+        return safeFirebaseCall {
+            val authResult = mAuth.createUserWithEmailAndPassword(email, password).await()
+            authResult.user ?: throw Exception(NetworkError.USER_NOT_FOUND.toUserFriendlyMessage())
         }
+    }
 
     override suspend fun signIn(
         email: String,
         password: String
-    ): AppResult<FirebaseUser, NetworkError> =
-
-        suspendCoroutine { cont ->
-            mAuth.signInWithEmailAndPassword(email.trim(), password.trim())
-                .addOnSuccessListener { result ->
-                    val user = result.user
-                    if (user != null) {
-                        cont.resume(AppResult.Success(user))
-                    } else {
-                        cont.resume(
-                            AppResult.Error(NetworkError.UNKNOWN),
-                        )
-                    }
-                }
-                .addOnFailureListener { exception ->
-                    cont.resume(AppResult.Error(exception.toNetworkError()))
-                }
+    ): AppResult<FirebaseUser, NetworkError> {
+        return safeFirebaseCall {
+            val authResult = mAuth.signInWithEmailAndPassword(email.trim(), password.trim()).await()
+            authResult.user ?: throw Exception(NetworkError.USER_NOT_FOUND.toUserFriendlyMessage())
         }
-
+    }
 }

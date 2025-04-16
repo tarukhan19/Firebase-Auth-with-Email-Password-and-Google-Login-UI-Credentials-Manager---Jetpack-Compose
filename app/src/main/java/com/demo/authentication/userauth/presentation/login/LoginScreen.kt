@@ -36,6 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.demo.authentication.R
 import com.demo.authentication.core.domain.utils.AppResult
 import com.demo.authentication.core.presentation.utils.ObserveAsEvents
+import com.demo.authentication.core.presentation.utils.toUserFriendlyMessage
 import com.demo.authentication.userauth.presentation.components.CircularProgressBar
 import com.demo.authentication.userauth.presentation.components.CustomButton
 import com.demo.authentication.userauth.presentation.components.CustomImage
@@ -85,7 +86,7 @@ fun LoginScreenRoot(
                 }
 
                 is AppResult.Error -> {
-                    Toast.makeText(context, result.error.name, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, result.error.toUserFriendlyMessage(), Toast.LENGTH_SHORT).show()
                 }
 
                 else -> {} // do nothing
