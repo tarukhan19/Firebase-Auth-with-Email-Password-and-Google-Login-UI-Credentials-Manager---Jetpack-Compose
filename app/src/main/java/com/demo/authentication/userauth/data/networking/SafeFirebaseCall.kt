@@ -19,15 +19,6 @@ suspend inline fun <T> safeFirebaseCall(
         AppResult.Success(result)
     } catch (e: Exception) {
         coroutineContext.ensureActive()
-        AppResult.Error(
-            when (e) {
-                is FirebaseAuthInvalidCredentialsException -> NetworkError.INVALID_EMAIL_PASSWORD
-                is FirebaseAuthInvalidUserException -> NetworkError.USER_NOT_FOUND
-                is FirebaseAuthUserCollisionException -> NetworkError.EMAIL_ALREADY_IN_USE
-                is FirebaseAuthException -> NetworkError.UNKNOWN
-                is IOException -> NetworkError.NO_INTERNET
-                else -> NetworkError.UNKNOWN
-            }
-        )
+        AppResult.Error(NetworkError.SERVER_ERROR(e.message))
     }
 }

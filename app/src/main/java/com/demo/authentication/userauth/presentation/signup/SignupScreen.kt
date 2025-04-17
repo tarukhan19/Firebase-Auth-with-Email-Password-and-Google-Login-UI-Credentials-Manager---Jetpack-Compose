@@ -98,7 +98,8 @@ fun SignUpRoot(
             }
 
             is AppResult.Error -> {
-                Toast.makeText(context, result.error.toUserFriendlyMessage(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, result.error.toUserFriendlyMessage(), Toast.LENGTH_SHORT)
+                    .show()
             }
 
             else -> {}// do nothing
@@ -115,7 +116,7 @@ fun SignUpRoot(
         onToggleConfPasswordVisibility = { signupViewModel.handleIntent(SignupEvent.ToggleConfirmPasswordVisibility) },
         onMobileNoChange = { signupViewModel.handleIntent(EnterPhoneNumber(it)) },
         onSubmit = { signupViewModel.handleIntent(Submit) },
-        onTncCheck = { signupViewModel.handleIntent(ToggleTnc)} ,
+        onTncCheck = { signupViewModel.handleIntent(ToggleTnc) },
         onSignInNavigate = onLogInNavigate,
         isButtonEnabled = signupViewModel.validateInput(),
     )
@@ -129,7 +130,7 @@ fun SignUpRoot(
 @Composable
 fun SignupScreen(
     signupAction: SignupAction,
-    signupState : SignupState
+    signupState: SignupState
 ) {
 
     val focusManager = LocalFocusManager.current

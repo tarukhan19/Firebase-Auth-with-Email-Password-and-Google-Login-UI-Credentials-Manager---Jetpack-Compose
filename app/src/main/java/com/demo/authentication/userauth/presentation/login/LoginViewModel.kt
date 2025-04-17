@@ -1,5 +1,6 @@
 package com.demo.authentication.userauth.presentation.login
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,35 +13,42 @@ import com.demo.authentication.core.domain.utils.onError
 import com.demo.authentication.core.domain.utils.onSuccess
 import com.demo.authentication.core.presentation.utils.isValidEmail
 import com.demo.authentication.core.presentation.utils.isValidPassword
+import com.demo.authentication.core.presentation.utils.toUserFriendlyMessage
 import com.demo.authentication.userauth.domain.repository.AuthRepository
-import com.demo.authentication.userauth.domain.repository.CredentialManagement
+import com.demo.authentication.userauth.domain.repository.CredentialManagementRepository
+import com.demo.authentication.userauth.domain.repository.GoogleAuthUiClientRepository
 import com.demo.authentication.userauth.presentation.login.LoginEvent.EnterEmail
 import com.demo.authentication.userauth.presentation.login.LoginEvent.EnterPassword
-import com.demo.authentication.userauth.presentation.login.LoginEvent.GoogleLogin
 import com.demo.authentication.userauth.presentation.login.LoginEvent.Submit
 import com.demo.authentication.userauth.presentation.login.LoginEvent.TogglePasswordVisibility
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    val authRepository: AuthRepository,
-    val credentialManagement: CredentialManagement,
+    private val authRepository: AuthRepository,
+    val credentialManagement: CredentialManagementRepository,
+    val googleAuthUiClientRepository: GoogleAuthUiClientRepository,
     private val dataStoreAuthPreferences: DataStoreAuthPreferences,
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow(LoginState())
     val loginState: StateFlow<LoginState> = _loginState.asStateFlow()
 
-    private val _loginResult = MutableSharedFlow<AppResult<FirebaseUser, NetworkError>>()
-    val loginResult = _loginResult.asSharedFlow()
+    private val _loginResult = Channel<AppResult<FirebaseUser, NetworkError>>()
+    val loginResult = _loginResult.receiveAsFlow()
+
+    private val _googleSignInResult = Channel<AppResult<FirebaseUser, NetworkError>>()
+    val googleSignInResult = _googleSignInResult.receiveAsFlow()
 
     val coroutineExceptionHandler: CoroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
@@ -80,10 +88,6 @@ class LoginViewModel @Inject constructor(
             is Submit -> {
                 submitLogin()
             }
-
-            is GoogleLogin -> {
-                // googleSignIn()
-            }
         }
     }
 
@@ -111,8 +115,8 @@ class LoginViewModel @Inject constructor(
                                 isLoading = false,
                             )
                         }
-                        _loginResult.emit(AppResult.Success(user))
                         saveLoginStatus(true)
+                        _loginResult.send(AppResult.Success(user))
                     }
                     .onError { error ->
                         getState {
@@ -120,11 +124,39 @@ class LoginViewModel @Inject constructor(
                                 isLoading = false,
                             )
                         }
-                        _loginResult.emit(AppResult.Error(error))
+                        _loginResult.send(AppResult.Error(error))
                     }
             } else {
                 getState { it.copy(isLoading = false) }
             }
         }
     }
+
+    fun signInWithGoogle(
+        context: Context,
+    ) {
+        viewModelScope.launch(coroutineExceptionHandler) {
+            getState { it.copy(isLoading = true) }
+
+            val result = googleAuthUiClientRepository.launchGoogleSignIn(context)
+            result
+                .onSuccess { user ->
+                    user?.let {
+                        saveLoginStatus(true)
+                        _googleSignInResult.send(AppResult.Success(user))
+                    }
+                }
+                .onError { error ->
+                    _googleSignInResult.send(AppResult.Error(error))
+                }
+
+            getState { it.copy(isLoading = false) }
+        }
+    }
 }
+
+
+//            if (result is AppResult.Success && result.data != null) {
+//                _googleSignInResult.send(AppResult.Success(result.data))
+//                saveLoginStatus(true)
+//            }

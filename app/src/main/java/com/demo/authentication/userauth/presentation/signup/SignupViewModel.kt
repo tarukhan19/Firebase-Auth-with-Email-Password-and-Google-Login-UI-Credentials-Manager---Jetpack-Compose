@@ -15,7 +15,7 @@ import com.demo.authentication.core.presentation.utils.isValidPassword
 import com.demo.authentication.core.presentation.utils.isValidPhoneNumber
 import com.demo.authentication.core.presentation.utils.matchesPassword
 import com.demo.authentication.userauth.domain.repository.AuthRepository
-import com.demo.authentication.userauth.domain.repository.CredentialManagement
+import com.demo.authentication.userauth.domain.repository.CredentialManagementRepository
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.EnterConfirmPassword
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.EnterEmail
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.EnterFullName
@@ -76,7 +76,7 @@ will automatically provide an instance of UserAuthRepo when creating SignupViewM
 @HiltViewModel
 class SignupViewModel @Inject constructor(
     val authRepository: AuthRepository,
-    val credentialManagement: CredentialManagement,
+    val credentialManagement: CredentialManagementRepository,
 ) : ViewModel() {
 
     private val _signUpState = MutableStateFlow(SignupState())

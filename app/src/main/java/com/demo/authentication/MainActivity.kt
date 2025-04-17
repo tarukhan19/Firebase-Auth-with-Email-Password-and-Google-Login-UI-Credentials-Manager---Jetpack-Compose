@@ -23,13 +23,13 @@ import com.demo.authentication.userauth.presentation.home.HomeScreen
 import com.demo.authentication.userauth.presentation.login.LoginScreenRoot
 import com.demo.authentication.userauth.presentation.signup.SignUpRoot
 import com.demo.authentication.core.presentation.viewmodel.SharedViewModel
-import com.demo.authentication.userauth.data.repository.CredentialManagementImpl
+import com.demo.authentication.userauth.data.repository.CredentialManagementRepositoryImpl
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @Inject lateinit var credentialManagerHelper: CredentialManagementImpl
+    @Inject lateinit var credentialManagerHelper: CredentialManagementRepositoryImpl
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

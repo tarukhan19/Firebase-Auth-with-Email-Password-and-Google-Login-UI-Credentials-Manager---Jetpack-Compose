@@ -1,9 +1,11 @@
 package com.demo.authentication.core.domain.di
 
 import com.demo.authentication.userauth.data.repository.AuthRepositoryImpl
-import com.demo.authentication.userauth.data.repository.CredentialManagementImpl
+import com.demo.authentication.userauth.data.repository.CredentialManagementRepositoryImpl
+import com.demo.authentication.userauth.data.repository.GoogleAuthUiClientRepositoryImpl
 import com.demo.authentication.userauth.domain.repository.AuthRepository
-import com.demo.authentication.userauth.domain.repository.CredentialManagement
+import com.demo.authentication.userauth.domain.repository.CredentialManagementRepository
+import com.demo.authentication.userauth.domain.repository.GoogleAuthUiClientRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,13 +17,18 @@ object AppModule {
 
     @Provides
     fun provideCredentialManagerHelper(
-    ): CredentialManagement {
-        return CredentialManagementImpl()
+    ): CredentialManagementRepository {
+        return CredentialManagementRepositoryImpl()
     }
 
     @Provides
     fun provideAuthRepository(
     ): AuthRepository {
         return AuthRepositoryImpl()
+    }
+
+    @Provides
+    fun provideGoogleAuthUiClient() : GoogleAuthUiClientRepository {
+        return GoogleAuthUiClientRepositoryImpl()
     }
 }

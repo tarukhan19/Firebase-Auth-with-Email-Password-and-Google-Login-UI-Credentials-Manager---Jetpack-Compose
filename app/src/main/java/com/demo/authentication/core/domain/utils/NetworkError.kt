@@ -1,17 +1,8 @@
 package com.demo.authentication.core.domain.utils
 
-enum class NetworkError : Error {
-    REQUEST_TIMEOUTS,
-    TOO_MANY_REQUESTS,
-    NO_INTERNET,
-    SERVER_ERROR,
-    INVALID_CREDENTIAL,
-    UNKNOWN,
-    INVALID_EMAIL_PASSWORD,
-    EMAIL_ALREADY_IN_USE,
-    USER_NOT_FOUND,
-    CREDENTIAL_CANCELLATION,
-    CREATE_CREDENTIAL_EXCEPTION,
-    NO_CREDENTIAL,
-    GET_CREDENTIAL_EXCEPTION
+sealed class NetworkError(val message: String? = null) : Error {
+    object USER_NOT_FOUND : NetworkError()
+    object NO_INTERNET : NetworkError()
+    object NOT_GOOGLE_ID_TOKEN_CREDENTIAL : NetworkError()
+    data class SERVER_ERROR(val errorMessage: String?) : NetworkError(errorMessage)
 }
