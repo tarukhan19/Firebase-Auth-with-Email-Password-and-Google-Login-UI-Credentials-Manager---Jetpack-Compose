@@ -28,20 +28,25 @@ import javax.inject.Inject
      As soon as we receive the first value, _isDataLoaded is set to true, signaling that DataStore has
      completed its initial load.
      This ensures that we don’t switch screens before data is available, preventing flickering issues in UI.
-   */
+ */
 
 @HiltViewModel
-class SharedViewModel @Inject constructor(dataStoreAuthPreferences: DataStoreAuthPreferences) : ViewModel() {
-    private val _isDataLoaded = MutableStateFlow(false)  // Track when DataStore is loaded
-    val isDataLoaded: StateFlow<Boolean> = _isDataLoaded.asStateFlow()
+class SharedViewModel
+    @Inject
+    constructor(
+        dataStoreAuthPreferences: DataStoreAuthPreferences,
+    ) : ViewModel() {
+        private val _isDataLoaded = MutableStateFlow(false) // Track when DataStore is loaded
+        val isDataLoaded: StateFlow<Boolean> = _isDataLoaded.asStateFlow()
 
-    val isLoggedIn: StateFlow<Boolean> = dataStoreAuthPreferences.getLoginState
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        val isLoggedIn: StateFlow<Boolean> =
+            dataStoreAuthPreferences.getLoginState
+                .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    init {
-        viewModelScope.launch {
-            dataStoreAuthPreferences.getLoginState.first() // Waits for the first emitted value
-            _isDataLoaded.value = true  // Only mark as loaded after first value is received
+        init {
+            viewModelScope.launch {
+                dataStoreAuthPreferences.getLoginState.first() // Waits for the first emitted value
+                _isDataLoaded.value = true // Only mark as loaded after first value is received
+            }
         }
     }
-}

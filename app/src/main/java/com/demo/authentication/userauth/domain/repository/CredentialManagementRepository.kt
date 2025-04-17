@@ -10,11 +10,11 @@ interface CredentialManagementRepository {
         context: Context,
         email: String,
         password: String,
-        onCreateCredentialReceived: (AppResult<Boolean, NetworkError>) -> Unit
+        onCreateCredentialReceived: (AppResult<Boolean, NetworkError>) -> Unit,
     )
 
     suspend fun launchGetCredential(
         context: Context,
-        onGetCredentialReceived: (AppResult<PasswordCredential, NetworkError>) -> Unit
+        onGetCredentialReceived: (AppResult<PasswordCredential, NetworkError>) -> Unit,
     )
 }

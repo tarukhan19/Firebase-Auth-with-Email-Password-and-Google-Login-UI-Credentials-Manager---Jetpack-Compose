@@ -30,9 +30,9 @@ android {
         Normally we should define our API keys in server but this is one of other option to make it work locally. we should never
         define the API key inside classes.
          */
-        val properties= Properties()
+        val properties = Properties()
         properties.load(project.rootProject.file("local.properties").inputStream())
-        buildConfigField ("String","API_KEY","\"${properties.getProperty("API_KEY")}\"")
+        buildConfigField("String", "API_KEY", "\"${properties.getProperty("API_KEY")}\"")
     }
 
     buildTypes {
@@ -40,7 +40,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -72,14 +72,14 @@ dependencies {
     implementation(libs.androidx.splash)
     // hilt
     implementation(libs.hilt)
-    ksp (libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation) // Ensure this is included
     // navigation
     implementation(libs.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
     // datastore
     implementation(libs.androidx.datastore)
-    //google-signIn
+    // google-signIn
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.androidx.credential)

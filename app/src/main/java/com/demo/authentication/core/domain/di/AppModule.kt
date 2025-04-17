@@ -14,21 +14,12 @@ import dagger.hilt.components.SingletonComponent
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+    @Provides
+    fun provideCredentialManagerHelper(): CredentialManagementRepository = CredentialManagementRepositoryImpl()
 
     @Provides
-    fun provideCredentialManagerHelper(
-    ): CredentialManagementRepository {
-        return CredentialManagementRepositoryImpl()
-    }
+    fun provideAuthRepository(): AuthRepository = AuthRepositoryImpl()
 
     @Provides
-    fun provideAuthRepository(
-    ): AuthRepository {
-        return AuthRepositoryImpl()
-    }
-
-    @Provides
-    fun provideGoogleAuthUiClient() : GoogleAuthUiClientRepository {
-        return GoogleAuthUiClientRepositoryImpl()
-    }
+    fun provideGoogleAuthUiClient(): GoogleAuthUiClientRepository = GoogleAuthUiClientRepositoryImpl()
 }

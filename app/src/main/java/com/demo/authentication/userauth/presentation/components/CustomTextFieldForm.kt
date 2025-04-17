@@ -16,7 +16,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
 
-
 @Composable
 fun CustomTextFieldForm(
     value: String,
@@ -49,25 +48,29 @@ fun CustomTextFieldForm(
         placeholder = {
             Text(
                 text = stringResource(placeholder),
-                style = TextStyle(fontSize = 12.sp, color = Color.LightGray)
+                style = TextStyle(fontSize = 12.sp, color = Color.LightGray),
             )
         },
-        leadingIcon = leadingIcon?.let {
-            { Icon(imageVector = it, contentDescription = stringResource(contentDescription)) }
-        },
-        trailingIcon = trailingIcon?.let {
-            {
-                IconButton(onClick = { onTrailingIconClicked?.invoke() }) {
-                    Icon(
-                        imageVector = it,
-                        contentDescription = stringResource(leadingContentDescription)
-                    )
+        leadingIcon =
+            leadingIcon?.let {
+                { Icon(imageVector = it, contentDescription = stringResource(contentDescription)) }
+            },
+        trailingIcon =
+            trailingIcon?.let {
+                {
+                    IconButton(onClick = { onTrailingIconClicked?.invoke() }) {
+                        Icon(
+                            imageVector = it,
+                            contentDescription = stringResource(leadingContentDescription),
+                        )
+                    }
                 }
-            }
-        },
-        textStyle = TextStyle(
-            fontSize = 14.sp, color = color
-        ),
+            },
+        textStyle =
+            TextStyle(
+                fontSize = 14.sp,
+                color = color,
+            ),
         singleLine = singleLine,
         isError = isError,
         keyboardOptions = keyboardOptions,
@@ -76,6 +79,3 @@ fun CustomTextFieldForm(
         shape = RoundedCornerShape(percent = 20),
     )
 }
-
-
-

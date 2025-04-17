@@ -63,7 +63,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SignUpRoot(
     signupViewModel: SignupViewModel = hiltViewModel(),
-    onLogInNavigate: () -> Unit
+    onLogInNavigate: () -> Unit,
 ) {
     val signupState = signupViewModel.signUpState.collectAsState()
     val context = LocalContext.current
@@ -72,82 +72,80 @@ fun SignUpRoot(
     ObserveAsEvents(signupViewModel.signUpResult) { result ->
         when (result) {
             is AppResult.Success -> {
-
                 coroutineScope.launch {
-
                     signupViewModel.credentialManagement.launchCreateCredential(
                         context = context,
                         email = signupState.value.emailId,
-                        password = signupState.value.password
+                        password = signupState.value.password,
                     ) { response ->
                         response
                             .onSuccess {
-                                Toast.makeText(context, "Signup Successful!", Toast.LENGTH_SHORT)
+                                Toast
+                                    .makeText(context, "Signup Successful!", Toast.LENGTH_SHORT)
                                     .show()
-                            }
-                            .onError {
-                                Toast.makeText(
-                                    context,
-                                    it.toUserFriendlyMessage(),
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                            }.onError {
+                                Toast
+                                    .makeText(
+                                        context,
+                                        it.toUserFriendlyMessage(),
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
                             }
                     }
                 }
-
             }
 
             is AppResult.Error -> {
-                Toast.makeText(context, result.error.toUserFriendlyMessage(), Toast.LENGTH_SHORT)
+                Toast
+                    .makeText(context, result.error.toUserFriendlyMessage(), Toast.LENGTH_SHORT)
                     .show()
             }
 
-            else -> {}// do nothing
+            else -> {} // do nothing
         }
-
     }
 
-    val signupAction = SignupAction(
-        onFullNameChange = { signupViewModel.handleIntent(EnterFullName(it)) },
-        onEmailChange = { signupViewModel.handleIntent(EnterEmail(it)) },
-        onPasswordChange = { signupViewModel.handleIntent(EnterPassword(it)) },
-        onConfPasswordChange = { signupViewModel.handleIntent(EnterConfirmPassword(it)) },
-        onTogglePasswordVisibility = { signupViewModel.handleIntent(TogglePasswordVisibility) },
-        onToggleConfPasswordVisibility = { signupViewModel.handleIntent(SignupEvent.ToggleConfirmPasswordVisibility) },
-        onMobileNoChange = { signupViewModel.handleIntent(EnterPhoneNumber(it)) },
-        onSubmit = { signupViewModel.handleIntent(Submit) },
-        onTncCheck = { signupViewModel.handleIntent(ToggleTnc) },
-        onSignInNavigate = onLogInNavigate,
-        isButtonEnabled = signupViewModel.validateInput(),
-    )
+    val signupAction =
+        SignupAction(
+            onFullNameChange = { signupViewModel.handleIntent(EnterFullName(it)) },
+            onEmailChange = { signupViewModel.handleIntent(EnterEmail(it)) },
+            onPasswordChange = { signupViewModel.handleIntent(EnterPassword(it)) },
+            onConfPasswordChange = { signupViewModel.handleIntent(EnterConfirmPassword(it)) },
+            onTogglePasswordVisibility = { signupViewModel.handleIntent(TogglePasswordVisibility) },
+            onToggleConfPasswordVisibility = { signupViewModel.handleIntent(SignupEvent.ToggleConfirmPasswordVisibility) },
+            onMobileNoChange = { signupViewModel.handleIntent(EnterPhoneNumber(it)) },
+            onSubmit = { signupViewModel.handleIntent(Submit) },
+            onTncCheck = { signupViewModel.handleIntent(ToggleTnc) },
+            onSignInNavigate = onLogInNavigate,
+            isButtonEnabled = signupViewModel.validateInput(),
+        )
 
     SignupScreen(
         signupState = signupState.value,
-        signupAction = signupAction
+        signupAction = signupAction,
     )
 }
 
 @Composable
 fun SignupScreen(
     signupAction: SignupAction,
-    signupState: SignupState
+    signupState: SignupState,
 ) {
-
     val focusManager = LocalFocusManager.current
     ScaffoldUi(showToolBar = false) {
         Spacer(modifier = Modifier.padding(top = 20.dp))
 
         Box(
             modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        )
-        {
+            contentAlignment = Alignment.Center,
+        ) {
             CustomImage(
                 imageInt = R.drawable.app_icon,
                 contentDescription = R.string.app_icon,
-                modifier = Modifier
-                    .size(width = 150.dp, height = 150.dp)
-                    .padding(10.dp)
+                modifier =
+                    Modifier
+                        .size(width = 150.dp, height = 150.dp)
+                        .padding(10.dp),
             )
         }
 
@@ -157,16 +155,18 @@ fun SignupScreen(
             value = signupState.fullName,
             onValueChange = { signupAction.onFullNameChange(it) },
             label = R.string.full_name,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(all = 5.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(all = 5.dp),
             singleLine = true,
             isError = signupState.fullNameError,
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences,  // Capitalize first letter
-                keyboardType = KeyboardType.Text,  // Normal text input
-                imeAction = ImeAction.Next  // Move to next field
-            ),
+            keyboardOptions =
+                KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences, // Capitalize first letter
+                    keyboardType = KeyboardType.Text, // Normal text input
+                    imeAction = ImeAction.Next, // Move to next field
+                ),
             placeholder = R.string.full_name_placeholder,
             leadingIcon = Icons.Filled.Person,
             contentDescription = R.string.full_name_placeholder,
@@ -176,15 +176,17 @@ fun SignupScreen(
             value = signupState.emailId,
             onValueChange = { signupAction.onEmailChange(it) },
             label = R.string.email_id,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(all = 5.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(all = 5.dp),
             singleLine = true,
             isError = signupState.emailIdError,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email,  // Normal text input
-                imeAction = ImeAction.Next  // Move to next field
-            ),
+            keyboardOptions =
+                KeyboardOptions(
+                    keyboardType = KeyboardType.Email, // Normal text input
+                    imeAction = ImeAction.Next, // Move to next field
+                ),
             placeholder = R.string.email_id_placeholder,
             leadingIcon = Icons.Filled.Email,
             contentDescription = R.string.email_id_placeholder,
@@ -194,15 +196,17 @@ fun SignupScreen(
             value = signupState.password,
             onValueChange = { signupAction.onPasswordChange(it) },
             label = R.string.password,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(all = 5.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(all = 5.dp),
             singleLine = true,
             isError = signupState.passwordError || signupState.passwordMismatchError,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,  // Normal text input
-                imeAction = ImeAction.Next  // Move to next field
-            ),
+            keyboardOptions =
+                KeyboardOptions(
+                    keyboardType = KeyboardType.Password, // Normal text input
+                    imeAction = ImeAction.Next, // Move to next field
+                ),
             placeholder = R.string.password_placeholder,
             leadingIcon = Icons.Filled.Lock,
             trailingIcon = if (signupState.showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
@@ -211,66 +215,73 @@ fun SignupScreen(
             onTrailingIconClicked = {
                 signupAction.onTogglePasswordVisibility()
             },
-            visualTransformation = if (signupState.showPassword) {
-                VisualTransformation.None
-            } else {
-                PasswordVisualTransformation()
-            },
+            visualTransformation =
+                if (signupState.showPassword) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation()
+                },
         )
 
         CustomTextFieldForm(
             value = signupState.confirmPassword,
             onValueChange = { signupAction.onConfPasswordChange(it) },
             label = R.string.confirm_password,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(all = 5.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(all = 5.dp),
             singleLine = true,
             isError = signupState.confPasswordError || signupState.passwordMismatchError,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,  // Normal text input
-                imeAction = ImeAction.Next  // Move to next field
-            ),
+            keyboardOptions =
+                KeyboardOptions(
+                    keyboardType = KeyboardType.Password, // Normal text input
+                    imeAction = ImeAction.Next, // Move to next field
+                ),
             placeholder = R.string.conf_password_placeholder,
             leadingIcon = Icons.Filled.Lock,
             trailingIcon = if (signupState.showConfirmPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
             contentDescription = R.string.password_placeholder,
             leadingContentDescription = if (signupState.showConfirmPassword) R.string.show_password else R.string.hide_password,
             onTrailingIconClicked = { signupAction.onToggleConfPasswordVisibility() },
-            visualTransformation = if (signupState.showConfirmPassword) {
-                VisualTransformation.None
-            } else {
-                PasswordVisualTransformation()
-            },
+            visualTransformation =
+                if (signupState.showConfirmPassword) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation()
+                },
         )
 
         CustomTextFieldForm(
             value = signupState.phoneNumber,
             onValueChange = { signupAction.onMobileNoChange(it) },
             label = R.string.phone_number,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(all = 5.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(all = 5.dp),
             singleLine = true,
             isError = signupState.phoneNumberError,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,  // Normal text input
-                imeAction = ImeAction.Done  // Move to next field
-            ),
+            keyboardOptions =
+                KeyboardOptions(
+                    keyboardType = KeyboardType.Number, // Normal text input
+                    imeAction = ImeAction.Done, // Move to next field
+                ),
             placeholder = R.string.phone_number_placeholder,
             leadingIcon = Icons.Filled.MobileFriendly,
             contentDescription = R.string.phone_number_placeholder,
         )
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(5.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Checkbox(
                 checked = signupState.isTncAccepted,
-                onCheckedChange = { signupAction.onTncCheck(it) }
+                onCheckedChange = { signupAction.onTncCheck(it) },
             )
             CustomTextForm(text = R.string.tnc_text)
         }
@@ -282,7 +293,7 @@ fun SignupScreen(
                 signupAction.onSubmit()
             },
             icon = Icons.Filled.CheckCircleOutline,
-            buttonContent = stringResource(R.string.sign_up)
+            buttonContent = stringResource(R.string.sign_up),
         )
 
         Spacer(modifier = Modifier.padding(top = 10.dp))
@@ -290,18 +301,18 @@ fun SignupScreen(
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        )
-        {
+            horizontalArrangement = Arrangement.Center,
+        ) {
             CustomTextForm(text = R.string.already_have_acc)
             CustomTextForm(
                 text = R.string.sign_in,
-                modifier = Modifier
-                    .padding(start = 10.dp)
-                    .clickable { signupAction.onSignInNavigate() },
+                modifier =
+                    Modifier
+                        .padding(start = 10.dp)
+                        .clickable { signupAction.onSignInNavigate() },
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
         }
     }

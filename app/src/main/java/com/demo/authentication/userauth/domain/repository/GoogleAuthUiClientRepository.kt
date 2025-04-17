@@ -7,5 +7,6 @@ import com.google.firebase.auth.FirebaseUser
 
 interface GoogleAuthUiClientRepository {
     suspend fun launchGoogleSignIn(context: Context): AppResult<FirebaseUser?, NetworkError>
-    suspend fun googleSignOut(context: Context) : Boolean
+
+    suspend fun googleSignOut(context: Context): Boolean
 }

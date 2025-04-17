@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 fun ScaffoldUi(
     showToolBar: Boolean = false,
     title: String? = null,
-    content: @Composable (PaddingValues) -> Unit
+    content: @Composable (PaddingValues) -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     keyboardController?.hide()
@@ -37,14 +37,16 @@ fun ScaffoldUi(
                     },
                 )
             }
-        }
+        },
     ) { paddingValues ->
-        Column(modifier = Modifier
-            .verticalScroll(rememberScrollState())
-            .fillMaxSize()
-            .padding(paddingValues)
-            .padding(10.dp)
-            .imePadding()
+        Column(
+            modifier =
+                Modifier
+                    .verticalScroll(rememberScrollState())
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(10.dp)
+                    .imePadding(),
         ) {
             content(paddingValues)
         }

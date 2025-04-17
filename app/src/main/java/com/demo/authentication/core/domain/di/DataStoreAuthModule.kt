@@ -33,17 +33,14 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "us
 
 @Module
 @InstallIn(SingletonComponent::class)
-object DataStoreAuthModule{
+object DataStoreAuthModule {
+    @Provides
+    @Singleton
+    fun provideDataStore(
+        @ApplicationContext context: Context,
+    ): DataStore<Preferences> = context.dataStore
 
     @Provides
     @Singleton
-    fun provideDataStore(@ApplicationContext context: Context) : DataStore<Preferences> {
-        return context.dataStore
-    }
-
-    @Provides
-    @Singleton
-    fun provideDataStoreRepository(dataStore: DataStore<Preferences>): DataStoreAuthPreferences {
-        return DataStoreAuthPreferencesImpl(dataStore)
-    }
+    fun provideDataStoreRepository(dataStore: DataStore<Preferences>): DataStoreAuthPreferences = DataStoreAuthPreferencesImpl(dataStore)
 }

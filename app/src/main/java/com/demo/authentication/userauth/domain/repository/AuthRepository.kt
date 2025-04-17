@@ -9,8 +9,11 @@ interface AuthRepository {
         email: String,
         password: String,
         name: String,
-        mobileNo: String
+        mobileNo: String,
     ): AppResult<FirebaseUser, NetworkError>
 
-    suspend fun signIn(email: String, password: String): AppResult<FirebaseUser, NetworkError>
+    suspend fun signIn(
+        email: String,
+        password: String,
+    ): AppResult<FirebaseUser, NetworkError>
 }

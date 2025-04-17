@@ -13,13 +13,13 @@ import androidx.compose.ui.graphics.Color
 @Composable
 fun CircularProgressBar() {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.5f)) // Semi-transparent overlay
-            .clickable(enabled = false) {},
-        contentAlignment = Alignment.Center
-    )
-    {
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f)) // Semi-transparent overlay
+                .clickable(enabled = false) {},
+        contentAlignment = Alignment.Center,
+    ) {
         CircularProgressIndicator()
     }
 }

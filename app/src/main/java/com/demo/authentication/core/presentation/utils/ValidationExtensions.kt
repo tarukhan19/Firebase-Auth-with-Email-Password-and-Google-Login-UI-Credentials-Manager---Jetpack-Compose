@@ -15,22 +15,13 @@ The password has 6 or fewer characters (invalid password).
 Returns false if the password is strong enough.
  */
 
-fun String.isValidEmail(): Boolean {
-    return isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(this).matches()
-}
+fun String.isValidEmail(): Boolean = isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(this).matches()
 
-fun String.isValidPassword(): Boolean {
-    return length < 6
-}
+fun String.isValidPassword(): Boolean = length < 6
 
-fun String.isValidName(): Boolean {
-    return isEmpty() || length < 4
-}
+fun String.isValidName(): Boolean = isEmpty() || length < 4
 
-fun String.isValidPhoneNumber(): Boolean {
-    return isEmpty() || length <= 9
-}
+fun String.isValidPhoneNumber(): Boolean = isEmpty() || length <= 9
 
-fun String.matchesPassword(confirmPassword: String): Boolean {
-    return !this.isValidPassword() && !confirmPassword.isValidPassword() && this != confirmPassword
-}
+fun String.matchesPassword(confirmPassword: String): Boolean =
+    !this.isValidPassword() && !confirmPassword.isValidPassword() && this != confirmPassword

@@ -13,7 +13,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 
-
 @Composable
 fun CustomTextForm(
     text: Int,
@@ -25,18 +24,17 @@ fun CustomTextForm(
     minLines: Int = 1,
     fontWeight: FontWeight = FontWeight.Normal,
     color: Color = MaterialTheme.colorScheme.onBackground,
-
-
 ) {
     Text(
         text = stringResource(text),
         modifier = modifier,
-        style = TextStyle(
-            color = color,
-            fontSize = fontSize,
-            fontFamily = fontFamily,
-            fontWeight = fontWeight,
-        ),
+        style =
+            TextStyle(
+                color = color,
+                fontSize = fontSize,
+                fontFamily = fontFamily,
+                fontWeight = fontWeight,
+            ),
         letterSpacing = 1.sp,
         textAlign = textAlign,
         maxLines = maxLines,

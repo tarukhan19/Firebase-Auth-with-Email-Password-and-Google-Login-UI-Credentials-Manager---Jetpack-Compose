@@ -27,30 +27,32 @@ fun CustomButton(
     containerColor: Color = primaryColor,
     contentColor: Color = Color.White,
     shape: Shape = RoundedCornerShape(percent = 20),
-    elevation: ButtonElevation = ButtonDefaults.buttonElevation(
-        defaultElevation = 8.dp,
-        pressedElevation = 8.dp,
-        disabledElevation = 0.dp
-    ),
+    elevation: ButtonElevation =
+        ButtonDefaults.buttonElevation(
+            defaultElevation = 8.dp,
+            pressedElevation = 8.dp,
+            disabledElevation = 0.dp,
+        ),
     onClick: () -> Unit,
     icon: ImageVector? = null,
-    buttonContent: String = ""
+    buttonContent: String = "",
 ) {
     Button(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(all = 10.dp)
-            .size(50.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(all = 10.dp)
+                .size(50.dp),
         enabled = isButtonEnabled,
         shape = shape,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = containerColor,
-            contentColor = contentColor
-        ),
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = containerColor,
+                contentColor = contentColor,
+            ),
         elevation = elevation,
-    )
-    {
+    ) {
         if (icon != null) {
             Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(10.dp))
@@ -58,8 +60,7 @@ fun CustomButton(
         Text(
             text = buttonContent,
             fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
-
     }
 }

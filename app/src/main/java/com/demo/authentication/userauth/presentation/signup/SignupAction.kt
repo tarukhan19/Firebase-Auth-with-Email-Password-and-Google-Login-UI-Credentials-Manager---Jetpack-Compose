@@ -12,5 +12,5 @@ data class SignupAction(
     val onTncCheck: (Boolean) -> Unit = {},
     val onSubmit: () -> Unit = {},
     val onSignInNavigate: () -> Unit = {},
-    val isButtonEnabled: Boolean = false
+    val isButtonEnabled: Boolean = false,
 )

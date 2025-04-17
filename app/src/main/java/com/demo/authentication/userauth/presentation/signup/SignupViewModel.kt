@@ -2,8 +2,6 @@ package com.demo.authentication.userauth.presentation.signup
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.demo.authentication.core.domain.utils.AppResult
 import com.demo.authentication.core.domain.utils.NetworkError
@@ -26,6 +24,7 @@ import com.demo.authentication.userauth.presentation.signup.SignupEvent.ToggleCo
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.TogglePasswordVisibility
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.ToggleTnc
 import com.google.firebase.auth.FirebaseUser
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +33,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /*
 * in MVI, state changes should be immutable so handled via StateFlow, not MutableState.
@@ -74,102 +74,105 @@ will automatically provide an instance of UserAuthRepo when creating SignupViewM
 * */
 
 @HiltViewModel
-class SignupViewModel @Inject constructor(
-    val authRepository: AuthRepository,
-    val credentialManagement: CredentialManagementRepository,
-) : ViewModel() {
+class SignupViewModel
+    @Inject
+    constructor(
+        val authRepository: AuthRepository,
+        val credentialManagement: CredentialManagementRepository,
+    ) : ViewModel() {
+        private val _signUpState = MutableStateFlow(SignupState())
+        val signUpState: StateFlow<SignupState> = _signUpState.asStateFlow()
 
-    private val _signUpState = MutableStateFlow(SignupState())
-    val signUpState: StateFlow<SignupState> = _signUpState.asStateFlow()
+        private val _signUpResult = MutableSharedFlow<AppResult<FirebaseUser, NetworkError>>()
+        val signUpResult = _signUpResult.asSharedFlow()
 
-    private val _signUpResult = MutableSharedFlow<AppResult<FirebaseUser, NetworkError>>()
-    val signUpResult = _signUpResult.asSharedFlow()
-
-    val coroutineExceptionHandler: CoroutineExceptionHandler =
-        CoroutineExceptionHandler { _, throwable ->
-            Log.e("CoroutineError", "Exception caught: ${throwable.localizedMessage}")
-        }
-
-    fun handleIntent(signupIntent: SignupEvent) {
-        when (signupIntent) {
-            is EnterFullName -> {
-                getState {
-                    it.copy(
-                        fullName = signupIntent.fullName,
-                        fullNameError = (signupIntent.fullName.isValidName())
-                    )
-                }
+        val coroutineExceptionHandler: CoroutineExceptionHandler =
+            CoroutineExceptionHandler { _, throwable ->
+                Log.e("CoroutineError", "Exception caught: ${throwable.localizedMessage}")
             }
 
-            is EnterEmail -> {
-                getState {
-                    it.copy(
-                        emailId = signupIntent.emailId,
-                        emailIdError = (signupIntent.emailId.isValidEmail())
-                    )
-                }
-            }
-
-            is EnterPassword -> {
-                getState {
-                    val confirmPassword = _signUpState.value.confirmPassword
-                    it.copy(
-                        password = signupIntent.password,
-                        passwordError = (signupIntent.password.isValidPassword()),
-                        passwordMismatchError = signupIntent.password.matchesPassword(
-                            confirmPassword
-                        ),
-                    )
-                }
-            }
-
-            is EnterConfirmPassword -> {
-                getState {
-                    val password = _signUpState.value.password
-                    it.copy(
-                        confirmPassword = signupIntent.confirmPassword,
-                        confPasswordError = signupIntent.confirmPassword.isValidPassword(),
-                        passwordMismatchError = signupIntent.confirmPassword.matchesPassword(
-                            password
+        fun handleIntent(signupIntent: SignupEvent) {
+            when (signupIntent) {
+                is EnterFullName -> {
+                    getState {
+                        it.copy(
+                            fullName = signupIntent.fullName,
+                            fullNameError = (signupIntent.fullName.isValidName()),
                         )
-                    )
+                    }
                 }
-            }
 
-            is EnterPhoneNumber -> {
-                getState {
-                    it.copy(
-                        phoneNumber = signupIntent.phoneNumber,
-                        phoneNumberError = (signupIntent.phoneNumber.isValidPhoneNumber())
-                    )
+                is EnterEmail -> {
+                    getState {
+                        it.copy(
+                            emailId = signupIntent.emailId,
+                            emailIdError = (signupIntent.emailId.isValidEmail()),
+                        )
+                    }
                 }
-            }
 
-            is TogglePasswordVisibility -> {
-                getState {
-                    it.copy(
-                        showPassword = !it.showPassword
-                    )
+                is EnterPassword -> {
+                    getState {
+                        val confirmPassword = _signUpState.value.confirmPassword
+                        it.copy(
+                            password = signupIntent.password,
+                            passwordError = (signupIntent.password.isValidPassword()),
+                            passwordMismatchError =
+                                signupIntent.password.matchesPassword(
+                                    confirmPassword,
+                                ),
+                        )
+                    }
                 }
-            }
 
-            is ToggleConfirmPasswordVisibility -> {
-                getState {
-                    it.copy(
-                        showConfirmPassword = !it.showConfirmPassword
-                    )
+                is EnterConfirmPassword -> {
+                    getState {
+                        val password = _signUpState.value.password
+                        it.copy(
+                            confirmPassword = signupIntent.confirmPassword,
+                            confPasswordError = signupIntent.confirmPassword.isValidPassword(),
+                            passwordMismatchError =
+                                signupIntent.confirmPassword.matchesPassword(
+                                    password,
+                                ),
+                        )
+                    }
                 }
-            }
 
-            is ToggleTnc -> {
-                getState { it.copy(isTncAccepted = !it.isTncAccepted) }
-            }
+                is EnterPhoneNumber -> {
+                    getState {
+                        it.copy(
+                            phoneNumber = signupIntent.phoneNumber,
+                            phoneNumberError = (signupIntent.phoneNumber.isValidPhoneNumber()),
+                        )
+                    }
+                }
 
-            is Submit -> {
-                registerUser()
+                is TogglePasswordVisibility -> {
+                    getState {
+                        it.copy(
+                            showPassword = !it.showPassword,
+                        )
+                    }
+                }
+
+                is ToggleConfirmPasswordVisibility -> {
+                    getState {
+                        it.copy(
+                            showConfirmPassword = !it.showConfirmPassword,
+                        )
+                    }
+                }
+
+                is ToggleTnc -> {
+                    getState { it.copy(isTncAccepted = !it.isTncAccepted) }
+                }
+
+                is Submit -> {
+                    registerUser()
+                }
             }
         }
-    }
 
 //    fun userCredentialManagerRegister() {
 //        getState { it.copy(isLoading = true) }
@@ -183,52 +186,52 @@ class SignupViewModel @Inject constructor(
 //        }
 //    }
 
-    private fun registerUser() {
-        viewModelScope.launch(coroutineExceptionHandler) {
-
-            getState { it.copy(isLoading = true) }
-            if (validateInput()) {
-                authRepository.signUp(
-                    _signUpState.value.emailId,
-                    _signUpState.value.password,
-                    _signUpState.value.fullName,
-                    _signUpState.value.phoneNumber
-
-                ).onSuccess { user ->
-                    getState {
-                        it.copy(
-                            isLoading = false,
-                        )
-                    }
-                    _signUpResult.emit(AppResult.Success(user))
-
-                }.onError { error ->
-                    getState {
-                        it.copy(
-                            isLoading = false,
-                        )
-                    }
-                    _signUpResult.emit(AppResult.Error(error))
+        private fun registerUser() {
+            viewModelScope.launch(coroutineExceptionHandler) {
+                getState { it.copy(isLoading = true) }
+                if (validateInput()) {
+                    authRepository
+                        .signUp(
+                            _signUpState.value.emailId,
+                            _signUpState.value.password,
+                            _signUpState.value.fullName,
+                            _signUpState.value.phoneNumber,
+                        ).onSuccess { user ->
+                            getState {
+                                it.copy(
+                                    isLoading = false,
+                                )
+                            }
+                            _signUpResult.emit(AppResult.Success(user))
+                        }.onError { error ->
+                            getState {
+                                it.copy(
+                                    isLoading = false,
+                                )
+                            }
+                            _signUpResult.emit(AppResult.Error(error))
+                        }
+                } else {
+                    getState { it.copy(isLoading = false) }
                 }
-            } else {
-                getState { it.copy(isLoading = false) }
             }
         }
-    }
 
-    private fun getState(update: (SignupState) -> SignupState) {
-        _signUpState.update {
-            update(_signUpState.value)
+        private fun getState(update: (SignupState) -> SignupState) {
+            _signUpState.update {
+                update(_signUpState.value)
+            }
+        }
+
+        fun validateInput(): Boolean {
+            val state = _signUpState.value
+            return (
+                !state.fullName.isValidName() &&
+                    !state.phoneNumber.isValidPhoneNumber() &&
+                    !state.emailId.isValidEmail() &&
+                    !state.password.isValidPassword() &&
+                    !state.password.matchesPassword(state.confirmPassword) &&
+                    state.isTncAccepted
+            )
         }
     }
-
-    fun validateInput(): Boolean {
-        val state = _signUpState.value
-        return (!state.fullName.isValidName()
-                && !state.phoneNumber.isValidPhoneNumber()
-                && !state.emailId.isValidEmail()
-                && !state.password.isValidPassword()
-                && !state.password.matchesPassword(state.confirmPassword)
-                && state.isTncAccepted)
-    }
-}

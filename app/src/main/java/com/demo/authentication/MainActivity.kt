@@ -19,11 +19,11 @@ import com.demo.authentication.config.navigation.ScreenRoute.Home
 import com.demo.authentication.config.navigation.ScreenRoute.Login
 import com.demo.authentication.config.navigation.ScreenRoute.Signup
 import com.demo.authentication.config.theme.UserAuthTheme
+import com.demo.authentication.core.presentation.viewmodel.SharedViewModel
+import com.demo.authentication.userauth.data.repository.CredentialManagementRepositoryImpl
 import com.demo.authentication.userauth.presentation.home.HomeScreen
 import com.demo.authentication.userauth.presentation.login.LoginScreenRoot
 import com.demo.authentication.userauth.presentation.signup.SignUpRoot
-import com.demo.authentication.core.presentation.viewmodel.SharedViewModel
-import com.demo.authentication.userauth.data.repository.CredentialManagementRepositoryImpl
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -44,31 +44,29 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigation(
-    sharedViewModel: SharedViewModel = hiltViewModel()
-) {
+fun AppNavigation(sharedViewModel: SharedViewModel = hiltViewModel()) {
     val navController = rememberNavController()
     val isLoggedInState = sharedViewModel.isLoggedIn.collectAsStateWithLifecycle().value
     val isDataLoaded = sharedViewModel.isDataLoaded.collectAsState().value
 
     Crossfade(targetState = isDataLoaded) { loaded ->
         if (loaded) {
-            Log.e("isLoggedInState.value",isLoggedInState.toString())
+            Log.e("isLoggedInState.value", isLoggedInState.toString())
             val startDestination = if (isLoggedInState) Home else Login
 
             NavHost(
                 navController = navController,
-                startDestination = startDestination
+                startDestination = startDestination,
             ) {
                 composable<Login> {
                     LoginScreenRoot(
                         onSignUpNavigate = { navController.navigateToSingleTop(Signup) },
-                        onHomeNavigate = { navController.navigateToSingleTop(Home) }
+                        onHomeNavigate = { navController.navigateToSingleTop(Home) },
                     )
                 }
                 composable<Signup> {
                     SignUpRoot(
-                        onLogInNavigate = { navController.navigateToSingleTop(Login) }
+                        onLogInNavigate = { navController.navigateToSingleTop(Login) },
                     )
                 }
                 composable<Home> {
@@ -79,10 +77,9 @@ fun AppNavigation(
     }
 }
 
-
 fun NavController.navigateToSingleTop(screenRoute: ScreenRoute) {
     this.navigate(screenRoute) {
-        popUpTo(Login) { inclusive = false }  // Clears all backstack up to start
+        popUpTo(Login) { inclusive = false } // Clears all backstack up to start
         launchSingleTop = true
     }
 }

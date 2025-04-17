@@ -14,7 +14,7 @@ fun <T> ObserveAsEvents(
     events: Flow<T>,
     keys1: Any? = null,
     keys2: Any? = null,
-    onEvent: (T) -> Unit
+    onEvent: (T) -> Unit,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
 

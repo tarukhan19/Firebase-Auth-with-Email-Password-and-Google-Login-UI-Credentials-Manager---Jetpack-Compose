@@ -21,18 +21,21 @@ fun GoogleSignInButton(onClick: () -> Unit) {
                 setOnClickListener { onClick() }
 
                 // Apply corner radius
-                outlineProvider = object : ViewOutlineProvider() {
-                    override fun getOutline(view: View, outline: Outline) {
-                        outline.setRoundRect(0, 0, view.width, view.height, 20.dp.value)
+                outlineProvider =
+                    object : ViewOutlineProvider() {
+                        override fun getOutline(
+                            view: View,
+                            outline: Outline,
+                        ) {
+                            outline.setRoundRect(0, 0, view.width, view.height, 20.dp.value)
+                        }
                     }
-                }
-                clipToOutline = true  // Ensures corners are clipped
+                clipToOutline = true // Ensures corners are clipped
             }
         },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
     )
 }
-
-
