@@ -1,5 +1,6 @@
 package com.demo.authentication.userauth.presentation.login
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.demo.authentication.R
 import com.demo.authentication.core.domain.utils.AppResult
 import com.demo.authentication.core.domain.utils.onError
@@ -51,10 +53,10 @@ import com.demo.authentication.userauth.presentation.components.GoogleSignInButt
 import com.demo.authentication.userauth.presentation.components.ScaffoldUi
 import com.demo.authentication.userauth.presentation.login.LoginEvent.EnterEmail
 import com.demo.authentication.userauth.presentation.login.LoginEvent.EnterPassword
-import com.demo.authentication.userauth.presentation.login.LoginEvent.GoogleLogin
 import com.demo.authentication.userauth.presentation.login.LoginEvent.Submit
 import com.demo.authentication.userauth.presentation.login.LoginEvent.TogglePasswordVisibility
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /*
@@ -79,22 +81,40 @@ fun LoginScreenRoot(
         onPasswordChange = { loginViewModel.handleIntent(EnterPassword(it)) },
         onTogglePasswordVisibility = { loginViewModel.handleIntent(TogglePasswordVisibility) },
         onSubmit = { loginViewModel.handleIntent(Submit) },
-        onGoogleLogin = { loginViewModel.handleIntent(GoogleLogin) },
+        onGoogleLogin = { loginViewModel.signInWithGoogle(context) },
         onSignUpNavigate = onSignUpNavigate,
         isButtonEnabled = loginViewModel.isValidateInput()
     )
 
     LaunchedEffect(Unit) {
-        context.let {
-            loginViewModel.credentialManagement.launchGetCredential(context) { response ->
-                response.onSuccess { passwordCredential ->
-                    if (true) {
-                        loginAction.onEmailChange(passwordCredential.id)
-                        loginAction.onPasswordChange(passwordCredential.password)
-                        loginAction.onSubmit()
-                    }
-                }
+        loginViewModel.credentialManagement.launchGetCredential(context) { response ->
+            response.onSuccess { credential ->
+                loginAction.onEmailChange(credential.id)
+                loginAction.onPasswordChange(credential.password)
+                loginAction.onSubmit()
             }
+            response.onError { error ->
+                Toast.makeText(
+                    context,
+                    error.toUserFriendlyMessage(),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    ObserveAsEvents(loginViewModel.googleSignInResult) { result ->
+        when (result) {
+            is AppResult.Success -> {
+                Toast.makeText(context, "Login Successful!", Toast.LENGTH_SHORT)
+                    .show()
+                onHomeNavigate()
+            }
+            is AppResult.Error -> {
+                Toast.makeText(context, result.error.toUserFriendlyMessage(), Toast.LENGTH_SHORT)
+                    .show()
+            }
+
         }
     }
 
@@ -103,7 +123,6 @@ fun LoginScreenRoot(
             is AppResult.Success -> {
 
                 coroutineScope.launch {
-
                     loginViewModel.credentialManagement.launchCreateCredential(
                         context = context,
                         email = loginState.value.emailId,
@@ -131,7 +150,6 @@ fun LoginScreenRoot(
                     .show()
             }
 
-            else -> {} // do nothing
         }
     }
 

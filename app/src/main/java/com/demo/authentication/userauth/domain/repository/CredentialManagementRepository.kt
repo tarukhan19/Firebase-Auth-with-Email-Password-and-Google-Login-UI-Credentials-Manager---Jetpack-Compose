@@ -5,9 +5,7 @@ import androidx.credentials.PasswordCredential
 import com.demo.authentication.core.domain.utils.AppResult
 import com.demo.authentication.core.domain.utils.NetworkError
 
-//interface CredentialManagement : CredentialManagerController
-
-interface CredentialManagement {
+interface CredentialManagementRepository {
     suspend fun launchCreateCredential(
         context: Context,
         email: String,

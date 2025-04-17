@@ -7,9 +7,9 @@ import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 
 
 fun NetworkError.toUserFriendlyMessage(): String = when (this) {
-    NetworkError.INVALID_EMAIL_PASSWORD -> "Invalid email address/password."
     NetworkError.USER_NOT_FOUND -> "User not found."
-    NetworkError.EMAIL_ALREADY_IN_USE -> "Email already in use."
     NetworkError.NO_INTERNET -> "Check your internet connection."
+    NetworkError.NOT_GOOGLE_ID_TOKEN_CREDENTIAL -> "credential is not GoogleIdTokenCredential"
+    is NetworkError.SERVER_ERROR -> this.errorMessage ?: "A server error occurred."
     else -> "An unknown error occurred."
 }

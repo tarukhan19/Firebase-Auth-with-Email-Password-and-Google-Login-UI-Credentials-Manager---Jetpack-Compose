@@ -1,26 +1,19 @@
 package com.demo.authentication.userauth.data.repository
 
-import android.app.Activity
+import android.content.Context
 import androidx.credentials.ClearCredentialStateRequest
-import androidx.credentials.CreatePasswordRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
-import androidx.credentials.GetPasswordOption
-import androidx.credentials.PasswordCredential
-import androidx.credentials.exceptions.CreateCredentialCancellationException
-import androidx.credentials.exceptions.CreateCredentialException
-import androidx.credentials.exceptions.GetCredentialCancellationException
-import androidx.credentials.exceptions.GetCredentialException
-import androidx.credentials.exceptions.NoCredentialException
-import com.demo.authentication.MyApplication
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.CancellationException
 import com.demo.authentication.R
-import com.demo.authentication.core.domain.utils.Resource
-import com.demo.authentication.userauth.domain.repository.GoogleAuthUiClient
+import com.demo.authentication.core.domain.utils.AppResult
+import com.demo.authentication.core.domain.utils.NetworkError
+import com.demo.authentication.core.domain.utils.onError
+import com.demo.authentication.core.domain.utils.onSuccess
+import com.demo.authentication.userauth.domain.repository.GoogleAuthUiClientRepository
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import com.google.firebase.auth.FirebaseUser
@@ -29,11 +22,9 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 
-class GoogleAuthUiClientImpl @Inject constructor(): GoogleAuthUiClient {
+class GoogleAuthUiClientRepositoryImpl @Inject constructor() : GoogleAuthUiClientRepository {
     private val tag = "GoogleAuthUiClient: "
 
-    private val activity = MyApplication.instance
-    private val credentialManager = CredentialManager.create(activity)
     private val firebaseAuth = FirebaseAuth.getInstance()
 
     private fun isGoogleSignedIn(): Boolean {
@@ -45,36 +36,46 @@ class GoogleAuthUiClientImpl @Inject constructor(): GoogleAuthUiClient {
         }
     }
 
-    override suspend fun googleSignIn(): Resource<String> {
+
+    override suspend fun launchGoogleSignIn(context: Context, ): AppResult<FirebaseUser?, NetworkError> {
         if (isGoogleSignedIn()) {
-            return Resource.Success("Already Signed In")
+            return AppResult.Success(firebaseAuth.currentUser)
         }
-
         return try {
-            val result = buildCredentialRequest()
-            handleGoogleSignIn(result)
+            val result = buildCredentialRequest(context)
+            handleGoogleSignIn(result).onSuccess { user ->
+                AppResult.Success(user)
+            }.onError {
+                AppResult.Error(NetworkError.SERVER_ERROR(it.message))
+            }
         } catch (e: Exception) {
-            e.printStackTrace()
-
-            if (e is CancellationException) throw e
-            Resource.Error("Sign-in failed: ${e.localizedMessage ?: "Unknown error"}")
+            AppResult.Error(NetworkError.SERVER_ERROR(e.message))
         }
     }
 
-    private suspend fun buildCredentialRequest(): GetCredentialResponse {
+    override suspend fun googleSignOut(context: Context): Boolean {
+        val credentialManager by lazy { CredentialManager.create(context) }
+        credentialManager.clearCredentialState(ClearCredentialStateRequest())
+        firebaseAuth.signOut()
+        return true
+    }
+
+    private suspend fun buildCredentialRequest(context: Context): GetCredentialResponse {
+        val credentialManager by lazy { CredentialManager.create(context) }
+
         val request = GetCredentialRequest.Builder()
             .addCredentialOption(
                 GetGoogleIdOption.Builder()
                     .setFilterByAuthorizedAccounts(false)
-                    .setServerClientId(activity.getString(R.string.default_web_client_id))
+                    .setServerClientId(context.getString(R.string.default_web_client_id))
                     .setAutoSelectEnabled(false)
                     .build()
             )
             .build()
-        return credentialManager.getCredential(context = activity, request = request)
+        return credentialManager.getCredential(context = context, request = request)
     }
 
-    private suspend fun handleGoogleSignIn(result: GetCredentialResponse): Resource<String> {
+    private suspend fun handleGoogleSignIn(result: GetCredentialResponse): AppResult<FirebaseUser?, NetworkError> {
         val credential = result.credential
         if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
             try {
@@ -87,31 +88,15 @@ class GoogleAuthUiClientImpl @Inject constructor(): GoogleAuthUiClient {
                 val authResult = firebaseAuth.signInWithCredential(authCredential).await()
 
                 return if (authResult.user != null) {
-                    Resource.Success("Sign-in successful")
+                    AppResult.Success(authResult.user)
                 } else {
-                    Resource.Error("Authentication failed: No user found")
+                    AppResult.Error(NetworkError.USER_NOT_FOUND)
                 }
             } catch (e: GoogleIdTokenParsingException) {
-                println(tag + "GoogleIdTokenParsingException: ${e.message} ")
-
-                return Resource.Error("Invalid Google token: ${e.message}")
-
+                return AppResult.Error(NetworkError.SERVER_ERROR(e.message))
             }
         } else {
-            println(tag + "credential is not GoogleIdTokenCredential")
-
-            return Resource.Error("Credential is not GoogleIdTokenCredential")
+            return AppResult.Error(NetworkError.NOT_GOOGLE_ID_TOKEN_CREDENTIAL)
         }
     }
-
-    override suspend fun googleSignOut() {
-        credentialManager.clearCredentialState(
-            ClearCredentialStateRequest()
-        )
-        firebaseAuth.signOut()
-    }
-
-    //// credential manager for normal login signup ////////
-
-
 }
