@@ -1,39 +1,51 @@
-# 🚀 Authentication App
+🔐 Firebase Auth App
+A modern Android authentication app built with Jetpack Compose using Firebase for email/password and Google Sign-In, integrated with Credential Manager for secure and seamless user login. Built following MVI architecture, this project ensures clean state management, separation of concerns, and scalable code.
 
-A modern **Android Authentication App** built with **Jetpack Compose** and following best practices. This project demonstrates a robust authentication flow, including **signup, login, and Google authentication**, while ensuring secure credential management and user session handling.
+🚀 Features
+✅ Firebase Authentication
 
-## ✨ Features
+Sign up and login using email/password
 
-🔹 **User Authentication**
-- Signup and login with email/password
-- Google Sign-In integration
+Login with Google Sign-In
 
-🔹 **Secure Credential Storage**
-- Uses **Credential Manager** for storing and retrieving user credentials securely
+🔐 Credential Manager Integration
 
-🔹 **Session Management**
-- User login state persisted using **DataStore**
+Save user credentials securely (email/password)
 
-🔹 **Local Storage**
-- User data is stored locally using **Room Database**
+Auto-login using stored credentials
 
-🔹 **Modern Android Development**
-- **Jetpack Compose** for building UI
-- **Hilt** for dependency injection
-- **MVI (Model-View-Intent) Architecture** for better state management and scalability
+Smooth user experience with Google Identity Services
 
-## 🛠 Tech Stack
+🗂 Session Persistence
 
-| Technology         | Purpose                                   |
-|--------------------|-------------------------------------------|
-| **Kotlin**        | Programming language for Android development |
-| **Jetpack Compose** | Declarative UI framework |
-| **Hilt**          | Dependency injection framework |
-| **Room Database** | Local data storage solution |
-| **DataStore**     | Lightweight key-value storage for session management |
-| **Credential Manager** | Secure credential storage |
-| **MVI Architecture** | Ensures better state management |
+Stores user login state using DataStore
 
-## 📂 Project Structure
+Automatically navigates authenticated users to the home screen
 
-The project follows the **MVI (Model-View-Intent) Architecture**, ensuring separation of concerns and scalability.
+🧩 Modern Android Tech Stack
+
+Built using Jetpack Compose
+
+Hilt for dependency injection
+
+MVI architecture for clean and maintainable business logic
+
+🛠 Tech Stack
+
+Tool / Library	Purpose
+Kotlin	Main programming language
+Jetpack Compose	Declarative UI framework
+Firebase Authentication	Backend for email/password and Google login
+Google Credential Manager	Secure password storage and autofill
+Hilt	Dependency injection
+DataStore	Lightweight persistence for login state
+MVI Architecture	Clean architecture pattern for UI logic
+Coroutines & Flow	Asynchronous event handling and state flow
+📱 Screens
+Login Screen – Email/password login + Google Sign-In
+
+Signup Screen – Create account with Firebase
+
+Home Screen – Navigated to upon successful login
+
+Credential Manager Prompt – Automatically fetch or save user credentials
