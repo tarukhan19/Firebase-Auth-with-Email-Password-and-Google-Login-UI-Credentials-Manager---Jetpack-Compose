@@ -1,51 +1,50 @@
 🔐 Firebase Auth App
-A modern Android authentication app built with Jetpack Compose using Firebase for email/password and Google Sign-In, integrated with Credential Manager for secure and seamless user login. Built following MVI architecture, this project ensures clean state management, separation of concerns, and scalable code.
+A modern Android Authentication app built with Jetpack Compose, powered by Firebase Authentication for Email/Password and Google Sign-In. Integrated with Credential Manager for secure and seamless sign-in experience. This project follows the MVI architecture to ensure clean state management, scalability, and maintainability.
 
 🚀 Features
 ✅ Firebase Authentication
+🔸 Sign up and login using Email/Password
 
-Sign up and login using email/password
-
-Login with Google Sign-In
+🔸 Login with Google Sign-In
 
 🔐 Credential Manager Integration
+🔸 Securely store credentials (email/password)
 
-Save user credentials securely (email/password)
+🔸 Auto-login with stored credentials
 
-Auto-login using stored credentials
-
-Smooth user experience with Google Identity Services
+🔸 Seamless experience with Google Identity Services
 
 🗂 Session Persistence
+🔸 Persist login state using DataStore
 
-Stores user login state using DataStore
-
-Automatically navigates authenticated users to the home screen
+🔸 Auto-navigate to home screen for logged-in users
 
 🧩 Modern Android Tech Stack
+⚙️ Built using Jetpack Compose
 
-Built using Jetpack Compose
+💉 Hilt for Dependency Injection
 
-Hilt for dependency injection
+📐 MVI Architecture for state handling
 
-MVI architecture for clean and maintainable business logic
+🔄 Coroutines & Flow for async state & data management
 
 🛠 Tech Stack
 
 Tool / Library	Purpose
-Kotlin	Main programming language
+Kotlin	Primary programming language
 Jetpack Compose	Declarative UI framework
-Firebase Authentication	Backend for email/password and Google login
-Google Credential Manager	Secure password storage and autofill
+Firebase Authentication	Email/Password & Google-based authentication
+Credential Manager	Secure storage and autofill of user credentials
 Hilt	Dependency injection
-DataStore	Lightweight persistence for login state
-MVI Architecture	Clean architecture pattern for UI logic
-Coroutines & Flow	Asynchronous event handling and state flow
+DataStore	Persistent storage for login session state
+MVI Architecture	Structured UI state and logic management
+Coroutines & Flow	Asynchronous operations and state flow
 📱 Screens
-Login Screen – Email/password login + Google Sign-In
+🔐 Login Screen – Email/Password + Google Sign-In
 
-Signup Screen – Create account with Firebase
+📝 Signup Screen – Register new users via Firebase
 
-Home Screen – Navigated to upon successful login
+🏠 Home Screen – Landed upon successful login
 
-Credential Manager Prompt – Automatically fetch or save user credentials
+🎛️ Credential Manager Prompt – Auto-fetch/store credentials on login
+
