@@ -30,15 +30,19 @@ A modern Android Authentication app built with Jetpack Compose, powered by Fireb
 
 🛠 Tech Stack
 
-Tool / Library	Purpose
-Kotlin	Primary programming language
-Jetpack Compose	Declarative UI framework
-Firebase Authentication	Email/Password & Google-based authentication
-Credential Manager	Secure storage and autofill of user credentials
-Hilt	Dependency injection
-DataStore	Persistent storage for login session state
-MVI Architecture	Structured UI state and logic management
-Coroutines & Flow	Asynchronous operations and state flow
+## 🛠 Tech Stack
+
+| Tool / Library              | Purpose                                          |
+|----------------------------|--------------------------------------------------|
+| **Kotlin**                 | Primary programming language                     |
+| **Jetpack Compose**        | Declarative UI framework                         |
+| **Firebase Authentication**| Email/Password & Google-based authentication     |
+| **Credential Manager**     | Secure storage and autofill of user credentials  |
+| **Hilt**                   | Dependency injection                             |
+| **DataStore**              | Persistent storage for login session state       |
+| **MVI Architecture**       | Structured UI state and logic management         |
+| **Coroutines & Flow**      | Asynchronous operations and state flow           |
+
 📱 Screens
 🔐 Login Screen – Email/Password + Google Sign-In
 
