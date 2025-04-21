@@ -26,6 +26,8 @@
     <string name="error_unknown">Something went wrong. Please try again later.</string>
     <string name="error_serialization">Couldn\'t serialize or deserialize data.</string>
 
+    <string name="home">Home</string>
+
     <string name="app_icon">App Icon</string>
 
 </resources>

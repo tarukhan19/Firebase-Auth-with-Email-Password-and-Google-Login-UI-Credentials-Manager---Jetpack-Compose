@@ -53,8 +53,6 @@ import com.demo.authentication.userauth.presentation.login.LoginEvent.EnterEmail
 import com.demo.authentication.userauth.presentation.login.LoginEvent.EnterPassword
 import com.demo.authentication.userauth.presentation.login.LoginEvent.Submit
 import com.demo.authentication.userauth.presentation.login.LoginEvent.TogglePasswordVisibility
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 
 /*
 If we are passing , hiltViewModel in login screen, preview don't work
@@ -110,6 +108,7 @@ fun LoginScreenRoot(
                     .show()
                 onHomeNavigate()
             }
+
             is AppResult.Error -> {
                 Toast
                     .makeText(context, result.error.toUserFriendlyMessage(), Toast.LENGTH_SHORT)
@@ -121,28 +120,10 @@ fun LoginScreenRoot(
     ObserveAsEvents(loginViewModel.loginResult) { result ->
         when (result) {
             is AppResult.Success -> {
-                coroutineScope.launch {
-                    loginViewModel.credentialManagement.launchCreateCredential(
-                        context = context,
-                        email = loginState.value.emailId,
-                        password = loginState.value.password,
-                    ) { response ->
-                        response
-                            .onSuccess {
-                                Toast
-                                    .makeText(context, "Login Successful!", Toast.LENGTH_SHORT)
-                                    .show()
-                                onHomeNavigate()
-                            }.onError {
-                                Toast
-                                    .makeText(
-                                        context,
-                                        it.toUserFriendlyMessage(),
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
-                            }
-                    }
-                }
+                Toast
+                    .makeText(context, "Login Successful!", Toast.LENGTH_SHORT)
+                    .show()
+                onHomeNavigate()
             }
 
             is AppResult.Error -> {
