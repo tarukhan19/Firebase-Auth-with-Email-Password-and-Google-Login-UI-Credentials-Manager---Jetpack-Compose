@@ -69,7 +69,6 @@ fun LoginScreenRoot(
 ) {
     val loginState = loginViewModel.loginState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
 
     val loginAction =
         LoginAction(

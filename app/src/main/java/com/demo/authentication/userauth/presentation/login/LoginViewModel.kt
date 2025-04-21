@@ -148,8 +148,3 @@ class LoginViewModel
             }
         }
     }
-
-//            if (result is AppResult.Success && result.data != null) {
-//                _googleSignInResult.send(AppResult.Success(result.data))
-//                saveLoginStatus(true)
-//            }

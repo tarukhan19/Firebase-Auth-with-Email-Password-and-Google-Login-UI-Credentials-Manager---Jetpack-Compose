@@ -174,18 +174,6 @@ class SignupViewModel
             }
         }
 
-//    fun userCredentialManagerRegister() {
-//        getState { it.copy(isLoading = true) }
-//
-//        viewModelScope.launch(coroutineExceptionHandler) {
-//            val result = googleAuthUiClient.userCredentialManagerRegister(
-//                _signUpState.value.emailId,
-//                _signUpState.value.password
-//            )
-//            getState { it.copy(isLoading = false, credentialSignupResult = result) }
-//        }
-//    }
-
         private fun registerUser() {
             viewModelScope.launch(coroutineExceptionHandler) {
                 getState { it.copy(isLoading = true) }
