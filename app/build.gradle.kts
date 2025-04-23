@@ -87,6 +87,7 @@ dependencies {
     implementation(libs.identity.googleid)
     implementation(libs.firebase.database)
 
+    debugImplementation(libs.leak.canary)
     // testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
