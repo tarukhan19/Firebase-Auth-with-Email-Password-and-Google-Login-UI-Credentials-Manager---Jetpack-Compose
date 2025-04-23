@@ -95,7 +95,7 @@ class LoginViewModel
             }
         }
 
-        fun isValidateInput(): Boolean {
+        fun hasInvalidInput(): Boolean {
             val state = _loginState.value
             return !state.emailId.isValidEmail() && !state.password.isValidPassword()
         }
@@ -104,7 +104,7 @@ class LoginViewModel
             viewModelScope.launch(coroutineExceptionHandler) {
                 getState { it.copy(isLoading = true) }
 
-                if (isValidateInput()) {
+                if (hasInvalidInput()) {
                     authRepository
                         .signIn(_loginState.value.emailId, _loginState.value.password)
                         .onSuccess { user ->

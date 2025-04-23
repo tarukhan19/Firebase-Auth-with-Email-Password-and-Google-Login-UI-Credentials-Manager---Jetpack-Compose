@@ -78,7 +78,7 @@ fun LoginScreenRoot(
             onSubmit = { loginViewModel.handleIntent(Submit) },
             onGoogleLogin = { loginViewModel.signInWithGoogle(context) },
             onSignUpNavigate = onSignUpNavigate,
-            isButtonEnabled = loginViewModel.isValidateInput(),
+            isButtonEnabled = loginViewModel.hasInvalidInput(),
         )
 
     LaunchedEffect(Unit) {

@@ -177,7 +177,7 @@ class SignupViewModel
         private fun registerUser() {
             viewModelScope.launch(coroutineExceptionHandler) {
                 getState { it.copy(isLoading = true) }
-                if (validateInput()) {
+                if (hasInvalidInput()) {
                     authRepository
                         .signUp(
                             _signUpState.value.emailId,
@@ -211,7 +211,7 @@ class SignupViewModel
             }
         }
 
-        fun validateInput(): Boolean {
+        fun hasInvalidInput(): Boolean {
             val state = _signUpState.value
             return (
                 !state.fullName.isValidName() &&

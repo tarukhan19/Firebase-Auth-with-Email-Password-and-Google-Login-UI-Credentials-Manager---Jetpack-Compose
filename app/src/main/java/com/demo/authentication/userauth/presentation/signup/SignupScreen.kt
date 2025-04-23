@@ -117,7 +117,7 @@ fun SignUpRoot(
             onSubmit = { signupViewModel.handleIntent(Submit) },
             onTncCheck = { signupViewModel.handleIntent(ToggleTnc) },
             onSignInNavigate = onLogInNavigate,
-            isButtonEnabled = signupViewModel.validateInput(),
+            isButtonEnabled = signupViewModel.hasInvalidInput(),
         )
 
     SignupScreen(
