@@ -22,7 +22,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -40,8 +40,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.demo.authentication.R
 import com.demo.authentication.core.domain.utils.AppResult
-import com.demo.authentication.core.domain.utils.onError
-import com.demo.authentication.core.domain.utils.onSuccess
 import com.demo.authentication.core.presentation.utils.ObserveAsEvents
 import com.demo.authentication.core.presentation.utils.toUserFriendlyMessage
 import com.demo.authentication.userauth.presentation.components.CircularProgressBar
@@ -55,10 +53,10 @@ import com.demo.authentication.userauth.presentation.signup.SignupEvent.EnterEma
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.EnterFullName
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.EnterPassword
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.EnterPhoneNumber
-import com.demo.authentication.userauth.presentation.signup.SignupEvent.Submit
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.TogglePasswordVisibility
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.ToggleTnc
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 @Composable
 fun SignUpRoot(
@@ -67,46 +65,31 @@ fun SignUpRoot(
 ) {
     val signupState = signupViewModel.signUpState.collectAsState()
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
 
-    ObserveAsEvents(signupViewModel.signUpResult) { result ->
-        when (result) {
-            is AppResult.Success -> {
-                coroutineScope.launch {
-                    signupViewModel.credentialManagement.launchCreateCredential(
-                        context = context,
-                        email = signupState.value.emailId,
-                        password = signupState.value.password,
-                    ) { response ->
-                        response
-                            .onSuccess {
-                                Toast
-                                    .makeText(context, "Signup Successful!", Toast.LENGTH_SHORT)
-                                    .show()
-                            }.onError {
-                                Toast
-                                    .makeText(
-                                        context,
-                                        it.toUserFriendlyMessage(),
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
-                            }
-                    }
+    val signUpResultFlow = remember {
+        signupViewModel.signUpState
+            .map { it.signupResult }.distinctUntilChanged()
+    }
+
+    ObserveAsEvents(signUpResultFlow) { result ->
+        result?.let { response ->
+            when (response) {
+                is AppResult.Success -> {
+                    Toast.makeText(context, "SignUp Successful!", Toast.LENGTH_SHORT).show()
+                }
+
+                is AppResult.Error -> {
+                    Toast.makeText(
+                        context,
+                        response.error.toUserFriendlyMessage(),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
-
-            is AppResult.Error -> {
-                Toast
-                    .makeText(context, result.error.toUserFriendlyMessage(), Toast.LENGTH_SHORT)
-                    .show()
-            }
-
-            else -> {} // do nothing
         }
     }
 
-    val signupAction =
-        SignupAction(
+    val signupAction = SignupAction(
             onFullNameChange = { signupViewModel.handleIntent(EnterFullName(it)) },
             onEmailChange = { signupViewModel.handleIntent(EnterEmail(it)) },
             onPasswordChange = { signupViewModel.handleIntent(EnterPassword(it)) },
@@ -114,10 +97,10 @@ fun SignUpRoot(
             onTogglePasswordVisibility = { signupViewModel.handleIntent(TogglePasswordVisibility) },
             onToggleConfPasswordVisibility = { signupViewModel.handleIntent(SignupEvent.ToggleConfirmPasswordVisibility) },
             onMobileNoChange = { signupViewModel.handleIntent(EnterPhoneNumber(it)) },
-            onSubmit = { signupViewModel.handleIntent(Submit) },
+            onSubmit = { signupViewModel.registerUser(context) },
             onTncCheck = { signupViewModel.handleIntent(ToggleTnc) },
             onSignInNavigate = onLogInNavigate,
-            isButtonEnabled = signupViewModel.hasInvalidInput(),
+            isButtonEnabled = signupViewModel.validateInputs(),
         )
 
     SignupScreen(
@@ -160,7 +143,7 @@ fun SignupScreen(
                     .fillMaxWidth()
                     .padding(all = 5.dp),
             singleLine = true,
-            isError = signupState.fullNameError,
+            isError = !signupState.fullNameError.isNullOrEmpty(),
             keyboardOptions =
                 KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences, // Capitalize first letter
@@ -171,6 +154,14 @@ fun SignupScreen(
             leadingIcon = Icons.Filled.Person,
             contentDescription = R.string.full_name_placeholder,
         )
+        signupState.fullNameError?.let {
+            CustomTextForm(
+                text = (it),
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onError,
+            )
+        }
+
 
         CustomTextFieldForm(
             value = signupState.emailId,
@@ -181,7 +172,7 @@ fun SignupScreen(
                     .fillMaxWidth()
                     .padding(all = 5.dp),
             singleLine = true,
-            isError = signupState.emailIdError,
+            isError = !signupState.emailIdError.isNullOrEmpty(),
             keyboardOptions =
                 KeyboardOptions(
                     keyboardType = KeyboardType.Email, // Normal text input
@@ -191,6 +182,13 @@ fun SignupScreen(
             leadingIcon = Icons.Filled.Email,
             contentDescription = R.string.email_id_placeholder,
         )
+        signupState.emailIdError?.let {
+            CustomTextForm(
+                text = (it),
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onError,
+                )
+        }
 
         CustomTextFieldForm(
             value = signupState.password,
@@ -201,7 +199,7 @@ fun SignupScreen(
                     .fillMaxWidth()
                     .padding(all = 5.dp),
             singleLine = true,
-            isError = signupState.passwordError || signupState.passwordMismatchError,
+            isError = !signupState.passwordError.isNullOrEmpty() || !signupState.passwordMismatchError.isNullOrEmpty(),
             keyboardOptions =
                 KeyboardOptions(
                     keyboardType = KeyboardType.Password, // Normal text input
@@ -222,6 +220,13 @@ fun SignupScreen(
                     PasswordVisualTransformation()
                 },
         )
+        signupState.passwordError?.let {
+            CustomTextForm(
+                text = (it),
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onError,
+                )
+        }
 
         CustomTextFieldForm(
             value = signupState.confirmPassword,
@@ -232,7 +237,7 @@ fun SignupScreen(
                     .fillMaxWidth()
                     .padding(all = 5.dp),
             singleLine = true,
-            isError = signupState.confPasswordError || signupState.passwordMismatchError,
+            isError = !signupState.passwordError.isNullOrEmpty() || !signupState.passwordMismatchError.isNullOrEmpty(),
             keyboardOptions =
                 KeyboardOptions(
                     keyboardType = KeyboardType.Password, // Normal text input
@@ -251,6 +256,13 @@ fun SignupScreen(
                     PasswordVisualTransformation()
                 },
         )
+        signupState.confPasswordError?.let {
+            CustomTextForm(
+                text = (it),
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onError,
+                )
+        }
 
         CustomTextFieldForm(
             value = signupState.phoneNumber,
@@ -261,7 +273,7 @@ fun SignupScreen(
                     .fillMaxWidth()
                     .padding(all = 5.dp),
             singleLine = true,
-            isError = signupState.phoneNumberError,
+            isError = !signupState.phoneNumberError.isNullOrEmpty(),
             keyboardOptions =
                 KeyboardOptions(
                     keyboardType = KeyboardType.Number, // Normal text input
@@ -271,7 +283,13 @@ fun SignupScreen(
             leadingIcon = Icons.Filled.MobileFriendly,
             contentDescription = R.string.phone_number_placeholder,
         )
-
+        signupState.phoneNumberError?.let {
+            CustomTextForm(
+                text = (it),
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onError,
+                )
+        }
         Row(
             modifier =
                 Modifier
@@ -283,7 +301,7 @@ fun SignupScreen(
                 checked = signupState.isTncAccepted,
                 onCheckedChange = { signupAction.onTncCheck(it) },
             )
-            CustomTextForm(text = R.string.tnc_text)
+            CustomTextForm(text = stringResource(R.string.tnc_text))
         }
 
         CustomButton(
@@ -303,9 +321,9 @@ fun SignupScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
-            CustomTextForm(text = R.string.already_have_acc)
+            CustomTextForm(text = stringResource(R.string.already_have_acc))
             CustomTextForm(
-                text = R.string.sign_in,
+                text = stringResource(R.string.sign_in),
                 modifier =
                     Modifier
                         .padding(start = 10.dp)

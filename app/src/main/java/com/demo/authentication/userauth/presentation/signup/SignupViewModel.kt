@@ -1,36 +1,30 @@
 package com.demo.authentication.userauth.presentation.signup
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.demo.authentication.core.domain.repository.DataStoreAuthPreferences
 import com.demo.authentication.core.domain.utils.AppResult
-import com.demo.authentication.core.domain.utils.NetworkError
-import com.demo.authentication.core.domain.utils.onError
-import com.demo.authentication.core.domain.utils.onSuccess
-import com.demo.authentication.core.presentation.utils.isValidEmail
-import com.demo.authentication.core.presentation.utils.isValidName
-import com.demo.authentication.core.presentation.utils.isValidPassword
-import com.demo.authentication.core.presentation.utils.isValidPhoneNumber
-import com.demo.authentication.core.presentation.utils.matchesPassword
-import com.demo.authentication.userauth.domain.repository.AuthRepository
-import com.demo.authentication.userauth.domain.repository.CredentialManagementRepository
+import com.demo.authentication.userauth.domain.usecase.CredentialRegisterUseCase
+import com.demo.authentication.userauth.domain.usecase.ValidationEmailIdUseCase
+import com.demo.authentication.userauth.domain.usecase.ValidationMobileNumberUseCase
+import com.demo.authentication.userauth.domain.usecase.ValidationNameUseCase
+import com.demo.authentication.userauth.domain.usecase.ValidationPasswordUseCase
+import com.demo.authentication.userauth.domain.usecase.SignUpUseCase
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.EnterConfirmPassword
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.EnterEmail
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.EnterFullName
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.EnterPassword
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.EnterPhoneNumber
-import com.demo.authentication.userauth.presentation.signup.SignupEvent.Submit
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.ToggleConfirmPasswordVisibility
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.TogglePasswordVisibility
 import com.demo.authentication.userauth.presentation.signup.SignupEvent.ToggleTnc
-import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -75,151 +69,186 @@ will automatically provide an instance of UserAuthRepo when creating SignupViewM
 
 @HiltViewModel
 class SignupViewModel
-    @Inject
-    constructor(
-        val authRepository: AuthRepository,
-        val credentialManagement: CredentialManagementRepository,
-    ) : ViewModel() {
-        private val _signUpState = MutableStateFlow(SignupState())
-        val signUpState: StateFlow<SignupState> = _signUpState.asStateFlow()
+@Inject
+constructor(
+    private val dataStoreAuthPreferences: DataStoreAuthPreferences,
+    private val signUpUseCase: SignUpUseCase,
+    private val credentialRegisterUseCase: CredentialRegisterUseCase,
+    private val emailValidationUseCase: ValidationEmailIdUseCase,
+    private val passwordValidationUseCase: ValidationPasswordUseCase,
+    private val nameValidationUseCase: ValidationNameUseCase,
+    private val mobileNumberValidationUseCase: ValidationMobileNumberUseCase
+) : ViewModel() {
+    private val _signUpState = MutableStateFlow(SignupState())
+    val signUpState = _signUpState.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        SignupState()
+    )
 
-        private val _signUpResult = MutableSharedFlow<AppResult<FirebaseUser, NetworkError>>()
-        val signUpResult = _signUpResult.asSharedFlow()
-
-        val coroutineExceptionHandler: CoroutineExceptionHandler =
-            CoroutineExceptionHandler { _, throwable ->
-                Log.e("CoroutineError", "Exception caught: ${throwable.localizedMessage}")
-            }
-
-        fun handleIntent(signupIntent: SignupEvent) {
-            when (signupIntent) {
-                is EnterFullName -> {
-                    getState {
-                        it.copy(
-                            fullName = signupIntent.fullName,
-                            fullNameError = (signupIntent.fullName.isValidName()),
-                        )
-                    }
-                }
-
-                is EnterEmail -> {
-                    getState {
-                        it.copy(
-                            emailId = signupIntent.emailId,
-                            emailIdError = (signupIntent.emailId.isValidEmail()),
-                        )
-                    }
-                }
-
-                is EnterPassword -> {
-                    getState {
-                        val confirmPassword = _signUpState.value.confirmPassword
-                        it.copy(
-                            password = signupIntent.password,
-                            passwordError = (signupIntent.password.isValidPassword()),
-                            passwordMismatchError =
-                                signupIntent.password.matchesPassword(
-                                    confirmPassword,
-                                ),
-                        )
-                    }
-                }
-
-                is EnterConfirmPassword -> {
-                    getState {
-                        val password = _signUpState.value.password
-                        it.copy(
-                            confirmPassword = signupIntent.confirmPassword,
-                            confPasswordError = signupIntent.confirmPassword.isValidPassword(),
-                            passwordMismatchError =
-                                signupIntent.confirmPassword.matchesPassword(
-                                    password,
-                                ),
-                        )
-                    }
-                }
-
-                is EnterPhoneNumber -> {
-                    getState {
-                        it.copy(
-                            phoneNumber = signupIntent.phoneNumber,
-                            phoneNumberError = (signupIntent.phoneNumber.isValidPhoneNumber()),
-                        )
-                    }
-                }
-
-                is TogglePasswordVisibility -> {
-                    getState {
-                        it.copy(
-                            showPassword = !it.showPassword,
-                        )
-                    }
-                }
-
-                is ToggleConfirmPasswordVisibility -> {
-                    getState {
-                        it.copy(
-                            showConfirmPassword = !it.showConfirmPassword,
-                        )
-                    }
-                }
-
-                is ToggleTnc -> {
-                    getState { it.copy(isTncAccepted = !it.isTncAccepted) }
-                }
-
-                is Submit -> {
-                    registerUser()
-                }
-            }
+    val coroutineExceptionHandler: CoroutineExceptionHandler =
+        CoroutineExceptionHandler { _, throwable ->
+            Log.e("CoroutineError", "Exception caught: ${throwable.localizedMessage}")
         }
 
-        private fun registerUser() {
-            viewModelScope.launch(coroutineExceptionHandler) {
-                getState { it.copy(isLoading = true) }
-                if (hasInvalidInput()) {
-                    authRepository
-                        .signUp(
-                            _signUpState.value.emailId,
-                            _signUpState.value.password,
-                            _signUpState.value.fullName,
-                            _signUpState.value.phoneNumber,
-                        ).onSuccess { user ->
-                            getState {
-                                it.copy(
-                                    isLoading = false,
-                                )
-                            }
-                            _signUpResult.emit(AppResult.Success(user))
-                        }.onError { error ->
-                            getState {
-                                it.copy(
-                                    isLoading = false,
-                                )
-                            }
-                            _signUpResult.emit(AppResult.Error(error))
-                        }
-                } else {
-                    getState { it.copy(isLoading = false) }
+    fun handleIntent(signupIntent: SignupEvent) {
+        when (signupIntent) {
+            is EnterFullName -> {
+                val nameResult = nameValidationUseCase(signupIntent.fullName)
+                getState {
+                    it.copy(
+                        fullName = signupIntent.fullName,
+                        fullNameError = if (nameResult.successful) null else nameResult.errorMessage,
+                        isSignupButtonEnabled = validateInputs()
+                    )
                 }
             }
-        }
 
-        private fun getState(update: (SignupState) -> SignupState) {
-            _signUpState.update {
-                update(_signUpState.value)
+            is EnterEmail -> {
+                val emailIdResult = emailValidationUseCase(signupIntent.emailId)
+                getState {
+                    it.copy(
+                        emailId = signupIntent.emailId,
+                        emailIdError = if (emailIdResult.successful) null else emailIdResult.errorMessage,
+                        isSignupButtonEnabled = validateInputs()
+                    )
+                }
             }
-        }
 
-        fun hasInvalidInput(): Boolean {
-            val state = _signUpState.value
-            return (
-                !state.fullName.isValidName() &&
-                    !state.phoneNumber.isValidPhoneNumber() &&
-                    !state.emailId.isValidEmail() &&
-                    !state.password.isValidPassword() &&
-                    !state.password.matchesPassword(state.confirmPassword) &&
-                    state.isTncAccepted
-            )
+            is EnterPassword -> {
+                val passwordResult = passwordValidationUseCase(
+                    signupIntent.password,
+                    _signUpState.value.confirmPassword
+                )
+                getState {
+                    it.copy(
+                        password = signupIntent.password,
+                        passwordError = if (passwordResult.successful) null else passwordResult.errorMessage,
+                        isSignupButtonEnabled = validateInputs()
+                    )
+                }
+            }
+
+            is EnterConfirmPassword -> {
+                val confPasswordResult = passwordValidationUseCase(
+                    signupIntent.confirmPassword,
+                    _signUpState.value.password
+                )
+                getState {
+                    it.copy(
+                        confirmPassword = signupIntent.confirmPassword,
+                        confPasswordError = if (confPasswordResult.successful) null else confPasswordResult.errorMessage,
+                        isSignupButtonEnabled = validateInputs()
+                    )
+                }
+            }
+
+            is EnterPhoneNumber -> {
+                val mobileNumberResult = mobileNumberValidationUseCase(signupIntent.phoneNumber)
+
+                getState {
+                    it.copy(
+                        phoneNumber = signupIntent.phoneNumber,
+                        phoneNumberError = if (mobileNumberResult.successful) null else mobileNumberResult.errorMessage,
+                        isSignupButtonEnabled = validateInputs()
+
+                    )
+                }
+            }
+
+            is TogglePasswordVisibility -> {
+                getState {
+                    it.copy(
+                        showPassword = !it.showPassword,
+                    )
+                }
+            }
+
+            is ToggleConfirmPasswordVisibility -> {
+                getState {
+                    it.copy(
+                        showConfirmPassword = !it.showConfirmPassword,
+                    )
+                }
+            }
+
+            is ToggleTnc -> {
+                getState { it.copy(isTncAccepted = !it.isTncAccepted) }
+            }
         }
     }
+
+    fun validateInputs(): Boolean {
+        val state = _signUpState.value
+
+        val nameResult = nameValidationUseCase(state.fullName)
+        val mobileNumberResult = mobileNumberValidationUseCase(state.phoneNumber)
+        val emailResult = emailValidationUseCase(state.emailId)
+        val passwordResult = passwordValidationUseCase(state.password)
+        val confPasswordResult = passwordValidationUseCase(state.confirmPassword)
+        val passwordsMatchResult = passwordValidationUseCase(
+            state.password,
+            state.confirmPassword
+        )
+        val isTncAccepted = state.isTncAccepted
+
+        return isTncAccepted && nameResult.successful && mobileNumberResult.successful && emailResult.successful &&
+                passwordResult.successful && confPasswordResult.successful && passwordsMatchResult.successful
+    }
+
+    fun registerUser(context: Context) {
+        viewModelScope.launch(coroutineExceptionHandler) {
+            getState { it.copy(isLoading = true) }
+
+            signUpUseCase(
+                _signUpState.value.emailId,
+                _signUpState.value.password,
+                _signUpState.value.fullName,
+                _signUpState.value.phoneNumber
+            ).collect { result ->
+                when (result) {
+                    is AppResult.Success -> {
+                        saveCredential(context)
+                        getState {
+                            it.copy(
+                                isLoading = false,
+                                signupResult = AppResult.Success(result.data),
+                            )
+                        }
+                    }
+
+                    is AppResult.Error -> {
+                        getState {
+                            it.copy(
+                                isLoading = false,
+                                signupResult = AppResult.Error(result.error),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun saveCredential(context: Context) {
+        viewModelScope.launch(coroutineExceptionHandler) {
+            credentialRegisterUseCase(
+                _signUpState.value.emailId,
+                _signUpState.value.password,
+                context
+            ).collect { result ->
+                saveLoginStatus(true)
+            }
+        }
+    }
+
+    suspend fun saveLoginStatus(loginStatus: Boolean) {
+        dataStoreAuthPreferences.saveLoginStatus(loginStatus)
+    }
+
+    private fun getState(update: (SignupState) -> SignupState) {
+        _signUpState.update {
+            update(_signUpState.value)
+        }
+    }
+}

@@ -10,6 +10,4 @@ sealed interface LoginEvent {
     ) : LoginEvent
 
     object TogglePasswordVisibility : LoginEvent
-
-    object Submit : LoginEvent
 }

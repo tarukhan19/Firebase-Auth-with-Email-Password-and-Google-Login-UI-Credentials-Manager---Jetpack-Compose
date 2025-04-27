@@ -9,142 +9,161 @@ import com.demo.authentication.core.domain.utils.AppResult
 import com.demo.authentication.core.domain.utils.NetworkError
 import com.demo.authentication.core.domain.utils.onError
 import com.demo.authentication.core.domain.utils.onSuccess
-import com.demo.authentication.core.presentation.utils.isValidEmail
-import com.demo.authentication.core.presentation.utils.isValidPassword
-import com.demo.authentication.userauth.domain.repository.AuthRepository
-import com.demo.authentication.userauth.domain.repository.CredentialManagementRepository
-import com.demo.authentication.userauth.domain.repository.GoogleAuthUiClientRepository
+import com.demo.authentication.userauth.domain.model.User
+import com.demo.authentication.userauth.domain.usecase.CredentialSignInUseCase
+import com.demo.authentication.userauth.domain.usecase.ValidationEmailIdUseCase
+import com.demo.authentication.userauth.domain.usecase.GoogleSignInUseCase
+import com.demo.authentication.userauth.domain.usecase.ValidationPasswordUseCase
+import com.demo.authentication.userauth.domain.usecase.SignInUseCase
 import com.demo.authentication.userauth.presentation.login.LoginEvent.EnterEmail
 import com.demo.authentication.userauth.presentation.login.LoginEvent.EnterPassword
-import com.demo.authentication.userauth.presentation.login.LoginEvent.Submit
 import com.demo.authentication.userauth.presentation.login.LoginEvent.TogglePasswordVisibility
-import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel
-    @Inject
-    constructor(
-        private val authRepository: AuthRepository,
-        val credentialManagement: CredentialManagementRepository,
-        val googleAuthUiClientRepository: GoogleAuthUiClientRepository,
-        private val dataStoreAuthPreferences: DataStoreAuthPreferences,
-    ) : ViewModel() {
-        private val _loginState = MutableStateFlow(LoginState())
-        val loginState: StateFlow<LoginState> = _loginState.asStateFlow()
+@Inject
+constructor(
+    private val dataStoreAuthPreferences: DataStoreAuthPreferences,
+    private val signInUseCase: SignInUseCase,
+    private val credentialSignInUseCase: CredentialSignInUseCase,
+    private val googleSignInUseCase: GoogleSignInUseCase,
+    private val emailValidationUseCase: ValidationEmailIdUseCase,
+    private val passwordValidationUseCase: ValidationPasswordUseCase
+) : ViewModel() {
 
-        private val _loginResult = Channel<AppResult<FirebaseUser, NetworkError>>()
-        val loginResult = _loginResult.receiveAsFlow()
+    private val _loginState = MutableStateFlow(LoginState())
+    val loginState = _loginState.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        LoginState()
+    )
 
-        private val _googleSignInResult = Channel<AppResult<FirebaseUser, NetworkError>>()
-        val googleSignInResult = _googleSignInResult.receiveAsFlow()
-
-        val coroutineExceptionHandler: CoroutineExceptionHandler =
-            CoroutineExceptionHandler { _, throwable ->
-                Log.e("CoroutineError", "Exception caught: ${throwable.localizedMessage}")
-            }
-
-        suspend fun saveLoginStatus(loginStatus: Boolean) {
-            dataStoreAuthPreferences.saveLoginStatus(loginStatus)
+    val coroutineExceptionHandler: CoroutineExceptionHandler =
+        CoroutineExceptionHandler { _, throwable ->
+            Log.e("CoroutineError", "Exception caught: ${throwable.localizedMessage}")
         }
 
-        fun handleIntent(loginIntent: LoginEvent) {
-            when (loginIntent) {
-                is EnterEmail -> {
-                    getState {
-                        it.copy(
-                            emailId = loginIntent.email,
-                            emailIdError = loginIntent.email.isValidEmail(),
-                        )
-                    }
-                }
+    suspend fun saveLoginStatus(loginStatus: Boolean) {
+        dataStoreAuthPreferences.saveLoginStatus(loginStatus)
+    }
 
-                is EnterPassword -> {
-                    getState {
-                        it.copy(
-                            password = loginIntent.password,
-                            passwordError = loginIntent.password.isValidPassword(),
-                        )
-                    }
-                }
+    fun handleIntent(loginIntent: LoginEvent) {
+        when (loginIntent) {
+            is EnterEmail -> {
 
-                is TogglePasswordVisibility -> {
-                    getState {
-                        it.copy(showPassword = !it.showPassword)
-                    }
+                val emailResult = emailValidationUseCase(loginIntent.email)
+                getState {
+                    it.copy(
+                        emailId = loginIntent.email,
+                        emailIdError = if (emailResult.successful) null else emailResult.errorMessage,
+                        isLoginButtonEnabled = validateInputs()
+                    )
                 }
+            }
 
-                is Submit -> {
+            is EnterPassword -> {
+                val passwordResult = passwordValidationUseCase(loginIntent.password)
+                getState {
+                    it.copy(
+                        password = loginIntent.password,
+                        passwordError = if (passwordResult.successful) null else passwordResult.errorMessage,
+                        isLoginButtonEnabled = validateInputs()
+                    )
+                }
+            }
+
+            is TogglePasswordVisibility -> {
+                getState {
+                    it.copy(showPassword = !it.showPassword)
+                }
+            }
+        }
+    }
+
+    private fun getState(update: (LoginState) -> LoginState) {
+        _loginState.update {
+            update(_loginState.value)
+        }
+    }
+
+    fun validateInputs(): Boolean {
+        val state = _loginState.value
+
+        val emailResult = emailValidationUseCase(state.emailId)
+        val passwordResult = passwordValidationUseCase(state.password)
+
+        return emailResult.successful && passwordResult.successful
+    }
+
+     fun submitLogin() {
+        viewModelScope.launch(coroutineExceptionHandler) {
+            getState { it.copy(isLoading = true) }
+            signInUseCase(_loginState.value.emailId, _loginState.value.password).collect { result ->
+                handleAuthResult(result)
+            }
+        }
+    }
+
+
+    fun signInWithGoogle(context: Context) {
+        viewModelScope.launch(coroutineExceptionHandler) {
+            getState { it.copy(isLoading = true) }
+
+            googleSignInUseCase(context).collect { result ->
+                handleAuthResult(result)
+
+            }
+        }
+    }
+
+    fun getCredential(context: Context) {
+        viewModelScope.launch(coroutineExceptionHandler) {
+            getState { it.copy(isLoading = true) }
+
+            credentialSignInUseCase(
+                context
+            ).collect { result ->
+                result.onSuccess { user ->
+                    getState {
+                        it.copy(emailId = user.email, password = user.password, isLoading = false)
+                    }
                     submitLogin()
-                }
-            }
-        }
-
-        private fun getState(update: (LoginState) -> LoginState) {
-            _loginState.update {
-                update(_loginState.value)
-            }
-        }
-
-        fun hasInvalidInput(): Boolean {
-            val state = _loginState.value
-            return !state.emailId.isValidEmail() && !state.password.isValidPassword()
-        }
-
-        private fun submitLogin() {
-            viewModelScope.launch(coroutineExceptionHandler) {
-                getState { it.copy(isLoading = true) }
-
-                if (hasInvalidInput()) {
-                    authRepository
-                        .signIn(_loginState.value.emailId, _loginState.value.password)
-                        .onSuccess { user ->
-                            getState {
-                                it.copy(
-                                    isLoading = false,
-                                )
-                            }
-                            saveLoginStatus(true)
-                            _loginResult.send(AppResult.Success(user))
-                        }.onError { error ->
-                            getState {
-                                it.copy(
-                                    isLoading = false,
-                                )
-                            }
-                            _loginResult.send(AppResult.Error(error))
-                        }
-                } else {
+                }.onError {
                     getState { it.copy(isLoading = false) }
                 }
             }
         }
+    }
 
-        fun signInWithGoogle(context: Context) {
-            viewModelScope.launch(coroutineExceptionHandler) {
-                getState { it.copy(isLoading = true) }
+    suspend fun handleAuthResult(result: AppResult<User, NetworkError>) {
 
-                val result = googleAuthUiClientRepository.launchGoogleSignIn(context)
-                result
-                    .onSuccess { user ->
-                        user?.let {
-                            saveLoginStatus(true)
-                            _googleSignInResult.send(AppResult.Success(user))
-                        }
-                    }.onError { error ->
-                        _googleSignInResult.send(AppResult.Error(error))
-                    }
+        when (result) {
+            is AppResult.Success -> {
+                getState {
+                    it.copy(
+                        isLoading = false,
+                        loginResult = AppResult.Success(result.data),
+                    )
+                }
+                saveLoginStatus(true)
+            }
 
-                getState { it.copy(isLoading = false) }
+            is AppResult.Error -> {
+                getState {
+                    it.copy(
+                        isLoading = false,
+                        loginResult = AppResult.Error(result.error),
+                    )
+                }
             }
         }
     }
+}

@@ -19,7 +19,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -37,10 +37,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.demo.authentication.R
 import com.demo.authentication.core.domain.utils.AppResult
+import com.demo.authentication.core.domain.utils.NetworkError
 import com.demo.authentication.core.domain.utils.onError
 import com.demo.authentication.core.domain.utils.onSuccess
 import com.demo.authentication.core.presentation.utils.ObserveAsEvents
 import com.demo.authentication.core.presentation.utils.toUserFriendlyMessage
+import com.demo.authentication.userauth.domain.model.User
 import com.demo.authentication.userauth.presentation.components.CircularProgressBar
 import com.demo.authentication.userauth.presentation.components.CustomButton
 import com.demo.authentication.userauth.presentation.components.CustomImage
@@ -51,8 +53,9 @@ import com.demo.authentication.userauth.presentation.components.GoogleSignInButt
 import com.demo.authentication.userauth.presentation.components.ScaffoldUi
 import com.demo.authentication.userauth.presentation.login.LoginEvent.EnterEmail
 import com.demo.authentication.userauth.presentation.login.LoginEvent.EnterPassword
-import com.demo.authentication.userauth.presentation.login.LoginEvent.Submit
 import com.demo.authentication.userauth.presentation.login.LoginEvent.TogglePasswordVisibility
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 /*
 If we are passing , hiltViewModel in login screen, preview don't work
@@ -70,65 +73,38 @@ fun LoginScreenRoot(
     val loginState = loginViewModel.loginState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
+    val loginResultFlow = remember {
+        loginViewModel.loginState
+            .map { it.loginResult }.distinctUntilChanged()
+    }
+
     val loginAction =
         LoginAction(
             onEmailChange = { loginViewModel.handleIntent(EnterEmail(it)) },
             onPasswordChange = { loginViewModel.handleIntent(EnterPassword(it)) },
             onTogglePasswordVisibility = { loginViewModel.handleIntent(TogglePasswordVisibility) },
-            onSubmit = { loginViewModel.handleIntent(Submit) },
+            onSubmit = { loginViewModel.submitLogin() },
             onGoogleLogin = { loginViewModel.signInWithGoogle(context) },
             onSignUpNavigate = onSignUpNavigate,
-            isButtonEnabled = loginViewModel.hasInvalidInput(),
+            isButtonEnabled = loginViewModel.validateInputs(),
         )
 
-    LaunchedEffect(Unit) {
-        loginViewModel.credentialManagement.launchGetCredential(context) { response ->
-            response.onSuccess { credential ->
-                loginAction.onEmailChange(credential.id)
-                loginAction.onPasswordChange(credential.password)
-                loginAction.onSubmit()
-            }
-            response.onError { error ->
-                Toast
-                    .makeText(
+    LaunchedEffect(Unit) { loginViewModel.getCredential(context) }
+    ObserveAsEvents(loginResultFlow) {
+        it?.let { response ->
+            when (response) {
+                is AppResult.Success -> {
+                    Toast.makeText(context, "Login Successful!", Toast.LENGTH_SHORT).show()
+                    onHomeNavigate()
+                }
+
+                is AppResult.Error -> {
+                    Toast.makeText(
                         context,
-                        error.toUserFriendlyMessage(),
-                        Toast.LENGTH_SHORT,
+                        response.error.toUserFriendlyMessage(),
+                        Toast.LENGTH_SHORT
                     ).show()
-            }
-        }
-    }
-
-    ObserveAsEvents(loginViewModel.googleSignInResult) { result ->
-        when (result) {
-            is AppResult.Success -> {
-                Toast
-                    .makeText(context, "Login Successful!", Toast.LENGTH_SHORT)
-                    .show()
-                onHomeNavigate()
-            }
-
-            is AppResult.Error -> {
-                Toast
-                    .makeText(context, result.error.toUserFriendlyMessage(), Toast.LENGTH_SHORT)
-                    .show()
-            }
-        }
-    }
-
-    ObserveAsEvents(loginViewModel.loginResult) { result ->
-        when (result) {
-            is AppResult.Success -> {
-                Toast
-                    .makeText(context, "Login Successful!", Toast.LENGTH_SHORT)
-                    .show()
-                onHomeNavigate()
-            }
-
-            is AppResult.Error -> {
-                Toast
-                    .makeText(context, result.error.toUserFriendlyMessage(), Toast.LENGTH_SHORT)
-                    .show()
+                }
             }
         }
     }
@@ -156,9 +132,9 @@ fun LoginScreen(
                 imageInt = R.drawable.app_icon,
                 contentDescription = R.string.app_icon,
                 modifier =
-                    Modifier
-                        .size(width = 150.dp, height = 150.dp)
-                        .padding(10.dp),
+                Modifier
+                    .size(width = 150.dp, height = 150.dp)
+                    .padding(10.dp),
             )
         }
         Spacer(modifier = Modifier.padding(top = 40.dp))
@@ -167,36 +143,42 @@ fun LoginScreen(
             onValueChange = { loginAction.onEmailChange(it) },
             label = R.string.email_id,
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(all = 5.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(all = 5.dp),
             singleLine = true,
-            isError = loginState.emailIdError,
+            isError = !loginState.emailIdError.isNullOrEmpty(),
             keyboardOptions =
-                KeyboardOptions(
-                    keyboardType = KeyboardType.Email, // Normal text input
-                    imeAction = ImeAction.Next, // Move to next field
-                ),
+            KeyboardOptions(
+                keyboardType = KeyboardType.Email, // Normal text input
+                imeAction = ImeAction.Next, // Move to next field
+            ),
             placeholder = R.string.email_id_placeholder,
             leadingIcon = Icons.Filled.Email,
             contentDescription = R.string.email_id_placeholder,
         )
+        loginState.emailIdError?.let {
+            CustomTextForm(
+                text = (it),
+                modifier = Modifier
+            )
+        }
 
         CustomTextFieldForm(
             value = loginState.password,
             onValueChange = { loginAction.onPasswordChange(it) },
             label = R.string.password,
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(all = 5.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(all = 5.dp),
             singleLine = true,
-            isError = loginState.passwordError,
+            isError = !loginState.passwordError.isNullOrEmpty(),
             keyboardOptions =
-                KeyboardOptions(
-                    keyboardType = KeyboardType.Password, // Normal text input
-                    imeAction = ImeAction.Done, // Move to next field
-                ),
+            KeyboardOptions(
+                keyboardType = KeyboardType.Password, // Normal text input
+                imeAction = ImeAction.Done, // Move to next field
+            ),
             placeholder = R.string.password_placeholder,
             leadingIcon = Icons.Filled.Lock,
             trailingIcon = if (loginState.showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
@@ -204,12 +186,18 @@ fun LoginScreen(
             leadingContentDescription = if (loginState.showPassword) R.string.show_password else R.string.hide_password,
             onTrailingIconClicked = { loginAction.onTogglePasswordVisibility() },
             visualTransformation =
-                if (loginState.showPassword) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
-                },
+            if (loginState.showPassword) {
+                VisualTransformation.None
+            } else {
+                PasswordVisualTransformation()
+            },
         )
+        loginState.passwordError?.let {
+            CustomTextForm(
+                text = (it),
+                modifier = Modifier
+            )
+        }
 
         CustomButton(
             isButtonEnabled = loginAction.isButtonEnabled,
@@ -228,15 +216,15 @@ fun LoginScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
-            CustomTextForm(text = R.string.dont_have_acc)
+            CustomTextForm(text = stringResource(R.string.dont_have_acc))
             CustomTextForm(
-                text = R.string.sign_up,
+                text = stringResource(R.string.sign_up),
                 modifier =
-                    Modifier
-                        .padding(start = 10.dp)
-                        .clickable {
-                            loginAction.onSignUpNavigate()
-                        },
+                Modifier
+                    .padding(start = 10.dp)
+                    .clickable {
+                        loginAction.onSignUpNavigate()
+                    },
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,

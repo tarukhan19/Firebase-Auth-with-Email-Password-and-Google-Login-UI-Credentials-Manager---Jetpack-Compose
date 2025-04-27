@@ -16,7 +16,7 @@ fun GoogleSignInButton(onClick: () -> Unit) {
     AndroidView(
         factory = { context ->
             SignInButton(context).apply {
-                setSize(SignInButton.SIZE_STANDARD)
+                setSize(SignInButton.COLOR_DARK)
                 setColorScheme(SignInButton.COLOR_DARK)
                 setOnClickListener { onClick() }
 

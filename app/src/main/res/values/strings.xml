@@ -28,6 +28,15 @@
 
     <string name="home">Home</string>
 
+    <string name="invalid_email_id">Invalid email Id </string>
+    <string name="invalid_email_format">Email format is invalid</string>
+    <string name="invalid_password_length">Password must be at least 6 characters</string>
+    <string name="invalid_password_digit">Password must contain at least one digit</string>
+    <string name="invalid_password_uppercase">Password must contain at least one uppercase letter</string>
+    <string name="invalid_mobile_number_length">Invalid Mobile Number</string>
+    <string name="invalid_name">Name cannot be blank</string>
+    <string name="password_mismatch">Password does not match with confirm password</string>
+
     <string name="app_icon">App Icon</string>
 
 </resources>

@@ -1,4 +1,4 @@
-package com.demo.authentication.core.domain.di
+package com.demo.authentication.config.di
 
 import android.content.Context
 import androidx.datastore.core.DataStore

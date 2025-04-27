@@ -7,6 +7,8 @@ sealed class NetworkError(
 
     object NO_INTERNET : NetworkError()
 
+    object INVALID_CREDENTIALS : NetworkError()
+
     object NOT_GOOGLE_ID_TOKEN_CREDENTIAL : NetworkError()
 
     data class SERVER_ERROR(

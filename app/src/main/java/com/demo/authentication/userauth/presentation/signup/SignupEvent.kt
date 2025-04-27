@@ -21,8 +21,6 @@ sealed interface SignupEvent {
         val confirmPassword: String,
     ) : SignupEvent
 
-    object Submit : SignupEvent
-
     object ToggleTnc : SignupEvent
 
     object TogglePasswordVisibility : SignupEvent

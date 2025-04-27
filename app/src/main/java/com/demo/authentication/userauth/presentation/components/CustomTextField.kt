@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun CustomTextForm(
-    text: Int,
+    text: String,
     modifier: Modifier = Modifier,
     fontSize: TextUnit = 14.sp,
     fontFamily: FontFamily = FontFamily.SansSerif,
@@ -26,7 +26,7 @@ fun CustomTextForm(
     color: Color = MaterialTheme.colorScheme.onBackground,
 ) {
     Text(
-        text = stringResource(text),
+        text = text,
         modifier = modifier,
         style =
             TextStyle(
