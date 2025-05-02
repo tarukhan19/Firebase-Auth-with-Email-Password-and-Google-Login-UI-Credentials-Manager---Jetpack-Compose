@@ -22,7 +22,7 @@ android {
         versionCode = 1
         versionName = "1.0"
         android.buildFeatures.buildConfig = true
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.demo.authentication.HiltTestRunner"
 
         /* to read api key from local.properties. Define API Keys inside local.properties and retrieve it here. in kotlin code,
         we can achieve the API key using BuildConfig.API
@@ -53,6 +53,12 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/LICENSE.md"
+            excludes += "/META-INF/LICENSE-notice.md"
+        }
     }
 }
 
@@ -90,10 +96,22 @@ dependencies {
     debugImplementation(libs.leak.canary)
     // testing
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // Using bundles (alternative approach)
+    testImplementation(libs.bundles.testing)
+    androidTestImplementation(libs.bundles.android.testing)
+    testImplementation(libs.bundles.android.testing)
+    debugImplementation(libs.bundles.debug)
+
+    testImplementation(libs.mockk)
+    testImplementation(libs.mockk.agent)
+    androidTestImplementation(libs.mockk.android)
+    testImplementation(libs.robolectric)
+
+
+
 }

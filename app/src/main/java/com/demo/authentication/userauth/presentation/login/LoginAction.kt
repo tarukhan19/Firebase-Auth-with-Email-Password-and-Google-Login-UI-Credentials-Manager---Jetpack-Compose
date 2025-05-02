@@ -8,5 +8,4 @@ data class LoginAction(
     val onSubmit: () -> Unit = {},
     val onGoogleLogin: () -> Unit = {},
     val onSignUpNavigate: () -> Unit = {},
-    val isButtonEnabled: Boolean = false,
 )

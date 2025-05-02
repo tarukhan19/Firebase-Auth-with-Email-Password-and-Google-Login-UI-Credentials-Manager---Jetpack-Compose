@@ -86,7 +86,6 @@ fun LoginScreenRoot(
             onSubmit = { loginViewModel.submitLogin() },
             onGoogleLogin = { loginViewModel.signInWithGoogle(context) },
             onSignUpNavigate = onSignUpNavigate,
-            isButtonEnabled = loginViewModel.validateInputs(),
         )
 
     LaunchedEffect(Unit) { loginViewModel.getCredential(context) }
@@ -200,7 +199,7 @@ fun LoginScreen(
         }
 
         CustomButton(
-            isButtonEnabled = loginAction.isButtonEnabled,
+            isButtonEnabled = loginState.isLoginButtonEnabled,
             onClick = {
                 focusManager.clearFocus() // Hide keyboard
                 loginAction.onSubmit()
@@ -219,8 +218,7 @@ fun LoginScreen(
             CustomTextForm(text = stringResource(R.string.dont_have_acc))
             CustomTextForm(
                 text = stringResource(R.string.sign_up),
-                modifier =
-                Modifier
+                modifier = Modifier
                     .padding(start = 10.dp)
                     .clickable {
                         loginAction.onSignUpNavigate()

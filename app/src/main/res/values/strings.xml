@@ -28,7 +28,7 @@
 
     <string name="home">Home</string>
 
-    <string name="invalid_email_id">Invalid email Id </string>
+    <string name="invalid_email_id">Invalid email Id</string>
     <string name="invalid_email_format">Email format is invalid</string>
     <string name="invalid_password_length">Password must be at least 6 characters</string>
     <string name="invalid_password_digit">Password must contain at least one digit</string>

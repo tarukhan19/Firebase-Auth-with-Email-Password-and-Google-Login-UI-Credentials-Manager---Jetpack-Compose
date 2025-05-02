@@ -9,16 +9,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 
 @Composable
 fun CircularProgressBar() {
     Box(
         modifier =
             Modifier
+                .testTag("circularProgressIndicator")
                 .fillMaxSize()
                 .background(Color.Black.copy(alpha = 0.5f)) // Semi-transparent overlay
                 .clickable(enabled = false) {},
         contentAlignment = Alignment.Center,
+
     ) {
         CircularProgressIndicator()
     }
