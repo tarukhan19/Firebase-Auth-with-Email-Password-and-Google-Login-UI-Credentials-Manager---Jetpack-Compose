@@ -28,7 +28,8 @@ compose-ui = "1.5.4"
 androidx-arch-core = "2.2.0"
 mockk = "1.13.8"
 robolectric = "4.12.1"
-espressoCore = "3.6.1"
+runner = "1.6.2"
+#espressoCore = "3.6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -62,7 +63,6 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 
 # Hilt testing
 hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hilt" }
@@ -82,6 +82,7 @@ mockk-agent = {group = "io.mockk", name = "mockk-agent-jvm", version.ref = "mock
 mockk-android = {group = "io.mockk", name = "mockk-android", version.ref = "mockk"}
 
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -104,8 +105,7 @@ android-testing = [
     "compose-ui-test-junit4",
     "hilt-android-testing",
     "androidx-arch-core-testing",
-    "kotlinx-coroutines-test",
-    "androidx-espresso-core"
+    "kotlinx-coroutines-test"
 ]
 debug = [
     "compose-ui-tooling",

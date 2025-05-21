@@ -78,6 +78,7 @@ dependencies {
     implementation(libs.androidx.splash)
     // hilt
     implementation(libs.hilt)
+    implementation(libs.androidx.runner)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation) // Ensure this is included
     // navigation
